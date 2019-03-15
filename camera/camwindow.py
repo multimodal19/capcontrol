@@ -1,10 +1,19 @@
 import cv2
 
 
-cv2.namedWindow("preview", cv2.WINDOW_NORMAL)
-vc = cv2.VideoCapture(0)
+cv2.namedWindow("preview", cv2.WND_PROP_FULLSCREEN)
+cv2.setWindowProperty(
+    "preview", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-if vc.isOpened(): # try to get the first frame
+# Get window dimensions
+x, y, width, height = cv2.getWindowImageRect("preview")
+
+# Set up video capture using the window dimensions to get nice scaling
+vc = cv2.VideoCapture(0)
+vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+# Check video capture by getting first frame
+if vc.isOpened():
     rval, frame = vc.read()
 else:
     rval = False
