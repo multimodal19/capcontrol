@@ -20,9 +20,58 @@ namespace CameraOverlay
     /// </summary>
     public partial class MainWindow : Window
     {
+        private bool rage = true;
+        private string rageImg = "overlays/filter_rage.png";
+        private string cloudImg = "overlays/filter_clouds.png";
+
+        private List<ICommandReader> commandReaders = new List<ICommandReader>();
+
         public MainWindow()
         {
             InitializeComponent();
+
+            commandReaders.Add(new StdioReader());
+            commandReaders.Add(new TcpReader());
+            commandReaders.ForEach(reader => reader.OnCommandReceived += HandleCommand);
+            commandReaders.ForEach(reader => reader.Start());
+        }
+
+        private void HandleCommand(string command)
+        {
+            LoadImage(command);
+        }
+
+        private void LoadImage(string image)
+        {
+            if (!System.IO.File.Exists(image))
+            {
+                Console.WriteLine($"File not found: {image}");
+                return;
+            }
+
+            Console.WriteLine($"Switching to new overlay: {image}");
+            this.image.Source = new BitmapImage(new Uri(image, UriKind.RelativeOrAbsolute));
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                // Close application on escape
+                case Key.Escape:
+                    Application.Current.Shutdown();
+                    break;
+                // Toggle between images on space
+                case Key.Space:
+                    rage = !rage;
+                    LoadImage(rage ? rageImg : cloudImg);
+                    break;
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            commandReaders.ForEach(reader => reader.Stop());
         }
     }
 }

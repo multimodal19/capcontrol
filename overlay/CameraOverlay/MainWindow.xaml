@@ -8,12 +8,18 @@
         AllowsTransparency="True"
         WindowStyle="None"
         WindowState="Maximized"
-        Topmost="True"
-        Title="MainWindow" Height="450" Width="800">
+        Topmost="False"
+        KeyDown="Window_KeyDown"
+        Closing="Window_Closing"
+        Title="CameraOverlay" Height="450" Width="800">
+    <!-- Topmost can be set to True but it's annoying for testing -->
     <Window.Background>
-        <SolidColorBrush Opacity="0" Color="White"/>
+        <SolidColorBrush Opacity="0"/>
     </Window.Background>
     <Grid>
-        <Image HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="assets/filter_rage.png"/>
+        <Image x:Name="image" Stretch="Uniform"
+               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+               Source="overlays/filter_rage.png"/>
+        <!-- Stretch="Fill" to cover the whole screen -->
     </Grid>
 </Window>

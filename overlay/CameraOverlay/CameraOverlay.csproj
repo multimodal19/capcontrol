@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CommandReader.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -95,8 +96,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="assets\filter_clouds.png" />
-    <Resource Include="assets\filter_rage.png" />
+    <Resource Include="overlays\filter_clouds.png" />
+    <Resource Include="overlays\filter_rage.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>XCOPY "$(ProjectDir)overlays" "$(TargetDir)overlays" /s /i /y /d</PostBuildEvent>
+  </PropertyGroup>
 </Project>
