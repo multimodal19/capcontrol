@@ -9,6 +9,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -41,16 +42,16 @@ namespace CameraOverlay
             LoadImage(command);
         }
 
-        private void LoadImage(string image)
+        private void LoadImage(string imagePath)
         {
-            if (!System.IO.File.Exists(image))
+            if (!System.IO.File.Exists(imagePath))
             {
-                Console.WriteLine($"File not found: {image}");
+                Console.WriteLine($"File not found: {imagePath}");
                 return;
             }
 
-            Console.WriteLine($"Switching to new overlay: {image}");
-            this.image.Source = new BitmapImage(new Uri(image, UriKind.RelativeOrAbsolute));
+            Console.WriteLine($"Switching to new overlay: {imagePath}");
+            image.TransitionSource(new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute)));
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
