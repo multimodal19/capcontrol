@@ -2,7 +2,7 @@
 
 ## Build Requirements
 - Visual Studio 2017 (Tested with version 15.9.9, but other versions should be fine too)
-    - .NET Desktop deveolpment component
+    - .NET Desktop development component
 
 ## Installation
 Open and build solution with Visual Studio.
@@ -12,4 +12,4 @@ Either just run the application directly from Visual Studio or from the bin dire
 
 Image paths are read from `stdin` and via TCP on port `3000`.
 
-Use <kbd>Escape</kbd> to quit and <kbd>Space</kbd> to switch between the default overlays.
+Use <kbd>Esc</kbd> to quit and <kbd>Space</kbd> to switch between the default overlays.
