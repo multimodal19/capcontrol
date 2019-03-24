@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommandLine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,8 +23,8 @@ namespace CameraOverlay
     public partial class MainWindow : Window
     {
         private bool rage = true;
-        private string rageImg = "overlays/filter_rage.png";
-        private string cloudImg = "overlays/filter_clouds.png";
+        private Options rageImg = new Options() { ImageSource = "overlays/filter_rage.png", Center = true };
+        private Options cloudImg = new Options() { ImageSource = "overlays/filter_clouds.png", Center = true };
 
         private List<ICommandReader> commandReaders = new List<ICommandReader>();
 
@@ -39,19 +40,43 @@ namespace CameraOverlay
 
         private void HandleCommand(string command)
         {
-            LoadImage(command);
+            try
+            {
+                // Todo: Handle quoted arguments
+                Parser.Default.ParseArguments<Options>(command.Split(' '))
+                    .WithParsed(opts => ApplyOptions(opts));
+            }
+            catch(Exception) {}
         }
 
-        private void LoadImage(string imagePath)
+        private async void ApplyOptions(Options opts)
         {
-            if (!System.IO.File.Exists(imagePath))
+            // First fade out old image if any
+            await image.FadeOutAsync(TimeSpan.FromMilliseconds(opts.FadeOut));
+            // Load new image & set attributes
+            LoadImage(opts.ImageSource);
+            image.Height = opts.Height;
+            image.Width = opts.Width;
+            image.Margin = new Thickness(opts.X, opts.Y, 0, 0);
+            image.Stretch = opts.Stretch ? Stretch.Fill : Stretch.Uniform;
+            image.HorizontalAlignment = opts.Center ? HorizontalAlignment.Center : HorizontalAlignment.Left;
+            image.VerticalAlignment = opts.Center ? VerticalAlignment.Center : VerticalAlignment.Top;
+            // Finally fade in again
+            await image.FadeInAsync(TimeSpan.FromMilliseconds(opts.FadeIn));
+        }
+
+        // Supports file paths & URLs
+        private bool LoadImage(string imageSource)
+        {
+            if (!Uri.TryCreate(imageSource, UriKind.RelativeOrAbsolute, out Uri imageUri))
             {
-                Console.WriteLine($"File not found: {imagePath}");
-                return;
+                Console.WriteLine($"Invalid image source: {imageSource}");
+                return false;
             }
 
-            Console.WriteLine($"Switching to new overlay: {imagePath}");
-            image.TransitionSource(new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute)));
+            Console.WriteLine($"Switching to new overlay: {imageSource}");
+            image.Source = new BitmapImage(imageUri);
+            return true;
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
@@ -65,7 +90,7 @@ namespace CameraOverlay
                 // Toggle between images on space
                 case Key.Space:
                     rage = !rage;
-                    LoadImage(rage ? rageImg : cloudImg);
+                    ApplyOptions(rage ? rageImg : cloudImg);
                     break;
             }
         }

@@ -10,6 +10,22 @@ Open and build solution with Visual Studio.
 ## Usage
 Either just run the application directly from Visual Studio or from the bin directory.
 
-Image paths are read from `stdin` and via TCP on port `3000`.
+Commands are read from `stdin` and via TCP on port `3000`.
+
+```
+command structure: [OPTIONS] IMG_SOURCE
+
+-x               Horizontal offset (Default: 0).
+-y               Vertical offset (Default: 0).
+-w               Width (Default: screen size).
+-h               Width (Default: screen size).
+-i, --fadein     Fade in duration in ms (Default: 200).
+-o, --fadeout    Fade out duration of previous image in ms (Default: 200).
+--center         Align image centered on the screen (Default: false).
+--stretch        Stretch image to fit (Default: only scale).
+--help           Display this help screen.
+--version        Display version information.
+IMG_SOURCE       Required. file path or URL pointing to image.
+```
 
 Use <kbd>Esc</kbd> to quit and <kbd>Space</kbd> to switch between the default overlays.

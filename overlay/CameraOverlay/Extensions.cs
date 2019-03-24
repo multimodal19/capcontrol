@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -11,35 +12,33 @@ namespace CameraOverlay
 {
     static class Extensions
     {
-        public static void TransitionSource(this Image image, ImageSource source)
+        public static Task FadeOutAsync(this Image image, TimeSpan fadeOutTime)
         {
-            TransitionSource(image, source, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(200));
+            return FadeAsync(image, fadeOutTime, 0);
         }
 
-
-        // Source: https://stackoverflow.com/a/19708196
-        public static void TransitionSource(
-            this Image image, ImageSource source, TimeSpan fadeOutTime, TimeSpan fadeInTime)
+        public static Task FadeInAsync(this Image image, TimeSpan fadeInTime)
         {
-            var fadeInAnimation = new DoubleAnimation(1d, fadeInTime);
+            return FadeAsync(image, fadeInTime, 1);
+        }
 
-            if (image.Source != null)
+        // Awaitable fade animation extension
+        public static Task FadeAsync(this Image image, TimeSpan fadeTime, double targetOpacity)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            if (image.Source != null && fadeTime != TimeSpan.Zero)
             {
-                var fadeOutAnimation = new DoubleAnimation(0d, fadeOutTime);
-
-                fadeOutAnimation.Completed += (o, e) =>
-                {
-                    image.Source = source;
-                    image.BeginAnimation(Image.OpacityProperty, fadeInAnimation);
-                };
-
-                image.BeginAnimation(Image.OpacityProperty, fadeOutAnimation);
+                var fadeInAnimation = new DoubleAnimation(targetOpacity, fadeTime);
+                fadeInAnimation.Completed += (o, e) => tcs.SetResult(true);
+                image.BeginAnimation(Image.OpacityProperty, fadeInAnimation);
+                return tcs.Task;
             }
             else
             {
-                image.Opacity = 0d;
-                image.Source = source;
-                image.BeginAnimation(Image.OpacityProperty, fadeInAnimation);
+                image.Opacity = targetOpacity;
+                tcs.SetResult(true);
+                return tcs.Task;
             }
         }
     }
