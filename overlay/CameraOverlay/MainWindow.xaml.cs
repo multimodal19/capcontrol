@@ -14,6 +14,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using WpfAnimatedGif;
 
 namespace CameraOverlay
 {
@@ -54,7 +55,7 @@ namespace CameraOverlay
             // First fade out old image if any
             await image.FadeOutAsync(TimeSpan.FromMilliseconds(opts.FadeOut));
             // Load new image & set attributes
-            LoadImage(opts.ImageSource);
+            LoadImage(opts.ImageSource, opts.Animate);
             image.Height = opts.Height;
             image.Width = opts.Width;
             image.Margin = new Thickness(opts.X, opts.Y, 0, 0);
@@ -66,7 +67,7 @@ namespace CameraOverlay
         }
 
         // Supports file paths & URLs
-        private bool LoadImage(string imageSource)
+        private bool LoadImage(string imageSource, bool animate)
         {
             if (!Uri.TryCreate(imageSource, UriKind.RelativeOrAbsolute, out Uri imageUri))
             {
@@ -75,7 +76,14 @@ namespace CameraOverlay
             }
 
             Console.WriteLine($"Switching to new overlay: {imageSource}");
-            image.Source = new BitmapImage(imageUri);
+            if (animate)
+            {
+                ImageBehavior.SetAnimatedSource(image, new BitmapImage(imageUri));
+            }
+            else {
+                ImageBehavior.SetAnimatedSource(image, null);
+                image.Source = new BitmapImage(imageUri);
+            }
             return true;
         }
 

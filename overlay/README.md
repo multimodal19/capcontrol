@@ -23,6 +23,7 @@ command structure: [OPTIONS] IMG_SOURCE
 -o, --fadeout    Fade out duration of previous image in ms (Default: 200).
 --center         Align image centered on the screen (Default: false).
 --stretch        Stretch image to fit (Default: only scale).
+--animate        Animate gif (Default: false).
 --help           Display this help screen.
 --version        Display version information.
 IMG_SOURCE       Required. file path or URL pointing to image.

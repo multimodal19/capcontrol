@@ -42,5 +42,8 @@ namespace CameraOverlay
 
         [Option(HelpText = "Stretch image to fit (Default: only scale).")]
         public bool Stretch { get; set; }
+
+        [Option(HelpText = "Animate gif (Default: false).")]
+        public bool Animate { get; set; }
     }
 }
