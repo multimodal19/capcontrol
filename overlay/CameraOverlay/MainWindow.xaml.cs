@@ -44,7 +44,7 @@ namespace CameraOverlay
             try
             {
                 // Todo: Handle quoted arguments
-                Parser.Default.ParseArguments<Options>(command.Split(' '))
+                Parser.Default.ParseArguments<Options>(command.Trim().Split(' '))
                     .WithParsed(opts => ApplyOptions(opts));
             }
             catch(Exception) {}
