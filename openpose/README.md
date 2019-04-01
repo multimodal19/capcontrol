@@ -1,12 +1,7 @@
 # overlay
 
-The `OpenPose` subdirectory contains a C++ implementation of a camera preview
-window with a parallel thread running OpenPose and processing as many of the
-frames as it can.
-
-The `python` subdirectory contains the experiment to do the same thing with
-Python, but worse: the performance is rather bad and the code isn't very
-readable and mostly uncommented. Thus it is not recommended to be used.
+A C++ implementation of a camera preview window with a parallel thread running
+OpenPose and processing as many of the frames as it can.
 
 ## Build Requirements
 - Visual Studio 2017 (Tested with version 15.9.10, but other versions should
