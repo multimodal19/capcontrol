@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7739B38F-6529-46AF-B083-FE4DA8DE05ED}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>camera_pose</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\Documents\GitHub\openpose\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">camera_pose.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">camera_pose</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\Documents\GitHub\openpose\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">camera_pose.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">camera_pose</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;D:\Documents\GitHub\openpose\include;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include2;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>NDEBUG;USE_CAFFE;USE_CUDA;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;USE_CAFFE;USE_CUDA;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\Documents\GitHub\openpose\include;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include2;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\Documents\GitHub\openpose\include;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include2;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>D:\Documents\GitHub\openpose\build\src\openpose\Release\openpose.lib;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\x64\vc15\lib\opencv_world401.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\gflags.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\glog.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffe.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffeproto.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_system-vc141-mt-x64-1_69.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_filesystem-vc141-mt-x64-1_69.lib;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\lib\x64\cudart_static.lib;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\x64\vc15\lib\opencv_world401.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\gflags.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\glog.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffe.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffeproto.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_system-vc141-mt-x64-1_69.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_filesystem-vc141-mt-x64-1_69.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/Documents/GitHub/openpose/build/examples/tutorial_api_cpp/Release/camera_pose.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/Documents/GitHub/openpose/build/$(Platform)/$(Configuration)/camera_pose.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\Documents\GitHub\openpose\include;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include2;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level4</WarningLevel>
+      <PreprocessorDefinitions>USE_CAFFE;USE_CUDA;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;USE_CAFFE;USE_CUDA;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\Documents\GitHub\openpose\include;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include2;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\Documents\GitHub\openpose\include;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\include2;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\include;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>D:\Documents\GitHub\openpose\build\src\openpose\Debug\openposed.lib;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\x64\vc15\lib\opencv_world401.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\gflagsd.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\glogd.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffe.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffeproto.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_system-vc141-mt-x64-1_69.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_filesystem-vc141-mt-x64-1_69.lib;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\lib\x64\cudart_static.lib;D:\Documents\GitHub\openpose\3rdparty\windows\opencv\x64\vc15\lib\opencv_world401.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\gflagsd.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\glogd.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffe.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe\lib\caffeproto.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_system-vc141-mt-x64-1_69.lib;D:\Documents\GitHub\openpose\3rdparty\windows\caffe3rdparty\lib\boost_filesystem-vc141-mt-x64-1_69.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>D:/Documents/GitHub/openpose/build/examples/tutorial_api_cpp/Debug/camera_pose.lib</ImportLibrary>
+      <ProgramDataBaseFile>D:/Documents/GitHub/openpose/build/$(Platform)/$(Configuration)/camera_pose.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="camera_pose_extras.cpp" />
+    <ClCompile Include="camera_pose.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="D:\Documents\GitHub\openpose\build\src\openpose\openpose.vcxproj">
+      <Project>{D2707ED7-8C26-3335-B74C-8787124A1974}</Project>
+      <Name>openpose</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="camera_pose_extras.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
