@@ -1,1 +1,1 @@
-pyzmq==18.0.1
+-e git+https://github.com/multimodal19/capcontrol.git#egg=communication&subdirectory=communication
