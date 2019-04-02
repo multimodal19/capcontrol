@@ -1,4 +1,4 @@
-# overlay
+# openpose
 
 A C++ implementation of a camera preview window with a parallel thread running
 OpenPose and processing as many of the frames as it can.

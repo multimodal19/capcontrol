@@ -1,8 +1,9 @@
-# camera
+# output
 
 ## Installation
-Requires `pynput` which can easily be installed with
+Install dependencies with
 `pip install -r requirements.txt`.
 
 ## Usage
-Is not very usable yet.
+Start the controllers and connect them to the MessageBroker with
+`python logicapcontroller.py 4001` and `python overlaycontroller.py 4001`.

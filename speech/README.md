@@ -37,3 +37,6 @@ need to be built locally or downloaded from elsewhere.
 ## Usage
 With the activated virtualenv, run any of the Python files like
 `python demo_google.py`.
+
+To run the recognizer connecting to the MessageBroker, use
+`python sample_recognizer.py localhost 4000`.
