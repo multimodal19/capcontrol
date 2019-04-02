@@ -121,7 +121,7 @@ class Subscriber(threading.Thread):
 
     """
 
-    def __init__(self, address, port, topic, handler):
+    def __init__(self, address, port, topic, handler, args={}):
         """Instantiate a new `Receiver`.
 
         Parameters
@@ -133,12 +133,16 @@ class Subscriber(threading.Thread):
         topic : str
             The topic used to filter messages.
         handler : fun
-            Function taking a string (the message) as argument. Will be called
-            when receiving a message.
+            Function taking a string (the message) and optionally some keyword
+            arguments as arguments. Will be called when receiving a message.
+        args : dict, optional
+            The dictionary with keyword arguments which will be unpacked and
+            passed to the handler function on every call.
 
         """
         threading.Thread.__init__(self)
         self.handler = handler
+        self.args = args
         # Index of first characters in messages like "topic!message"
         self.msg_start = len(topic) + 1
         # Connect subscribing socket to endpoint
@@ -156,4 +160,4 @@ class Subscriber(threading.Thread):
             # Remove the topic
             msg = msg_orig[self.msg_start:]
             # Invoke handler function with message
-            self.handler(msg)
+            self.handler(msg, **self.args)

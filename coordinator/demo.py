@@ -6,8 +6,8 @@ from communication import MessageBroker, Publisher, Subscriber
 # coordinator which will manage interaction between the input and output
 # modules of the application.
 
-def speech_handler(msg):
-    print("Speech handler received {}".format(msg))
+def speech_handler(msg, str1, int1=-1):
+    print("Speech handler received {}, {} and {}".format(msg, str1, int1))
 
 def openpose_handler(msg):
     print("OpenPose handler received {}".format(msg))
@@ -19,7 +19,8 @@ broker.start()
 # Prepare publishers and subscribers
 in1 = Publisher("localhost", "4000", "speech")
 in2 = Publisher("localhost", "4000", "openpose")
-out1 = Subscriber("localhost", "4001", "speech", speech_handler)
+speech_args = {'str1' : "Number1", 'int1': 42}
+out1 = Subscriber("localhost", "4001", "speech", speech_handler, speech_args)
 out2 = Subscriber("localhost", "4001", "openpose", openpose_handler)
 # Start subscribers
 out1.start()
