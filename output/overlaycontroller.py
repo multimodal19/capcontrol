@@ -1,4 +1,6 @@
 import socket
+import sys
+from communication import Subscriber
 
 
 TCP_IP = '127.0.0.1'
@@ -68,3 +70,32 @@ class OverlayController:
         command = f"{overlay}{args}\n"
         print(f"Overlay: {command}")
         self.socket.send(command.encode('utf8'))
+
+
+def handler(msg, controller):
+    """The message handler receiving commands from the coordinator.
+
+    :param str msg: the message
+    :param OverlayController controller: the OverlayController instance to use
+    """
+    if msg == "rage":
+        controller.rage_overlay()
+    elif msg == "cloud":
+        controller.cloud_overlay()
+    else:
+        print("Unknown message: {}".format(msg))
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Expected arguments <address> <port>")
+        sys.exit(1)
+    # Instantiate new OverlayController
+    oc = OverlayController()
+    # Subscribe to and handle overlay messages
+    sub = Subscriber(
+        sys.argv[1], sys.argv[2], "overlay", handler, {'controller': oc})
+    sub.start()
+    # Don't terminate immediately
+    print("Press enter to quit.")
+    input()

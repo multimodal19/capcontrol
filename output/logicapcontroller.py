@@ -1,4 +1,6 @@
 from pynput.keyboard import Key, Controller
+import sys
+from communication import Subscriber
 
 
 class LogiCapController:
@@ -37,3 +39,34 @@ class LogiCapController:
         self.kb.press(str(key))
         self.kb.release(str(key))
         self.kb.release(Key.alt)
+
+
+def handler(msg, controller):
+    """The message handler receiving commands from the coordinator.
+
+    :param str msg: the message
+    :param LogiCapController controller: the LogiCapController instance to use
+    """
+    if msg == "start_stop":
+        controller.start_stop()
+    elif msg == "scene_1":
+        controller.switch_scene(1)
+    elif msg == "scene_2":
+        controller.switch_scene(2)
+    else:
+        print("Unknown message: {}".format(msg))
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Expected arguments <address> <port>")
+        sys.exit(1)
+    # Instantiate new LogiCapController
+    lc = LogiCapController()
+    # Subscribe to and handle logicap messages
+    sub = Subscriber(
+        sys.argv[1], sys.argv[2], "logicap", handler, {'controller': lc})
+    sub.start()
+    # Don't terminate immediately
+    print("Press enter to quit.")
+    input()
