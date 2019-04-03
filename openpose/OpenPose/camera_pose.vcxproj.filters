@@ -17,5 +17,8 @@
     <ClInclude Include="camera_pose_extras.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="camera_pose.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

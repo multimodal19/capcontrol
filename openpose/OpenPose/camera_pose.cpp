@@ -1,15 +1,16 @@
-// Command-line user intraface
-#include <openpose/flags.hpp>
-#include <camera_pose_extras.hpp>
+#include <camera_pose.hpp>
 
 
 // ============================ Shared variables ============================
 FPSCounter fpsCounter_op;
 SharedFrame sharedFrame;
 SharedFrame sharedFrame_op;
+ZMQPublisher publisher("openpose");
 
 bool stopped = false;
 cv::Rect screenSize;
+int turnThreshold = 10;
+int faceDirection = DIR_STRAIGHT;
 
 
 // Source: OpenPose example file 02_whole_body_from_image_default.cpp
@@ -24,6 +25,135 @@ void printKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>
 			op::log("Face keypoints: " + datumsPtr->at(0)->faceKeypoints.toString(), op::Priority::High);
 			op::log("Left hand keypoints: " + datumsPtr->at(0)->handKeypoints[0].toString(), op::Priority::High);
 			op::log("Right hand keypoints: " + datumsPtr->at(0)->handKeypoints[1].toString(), op::Priority::High);
+		}
+		else
+			op::log("Nullptr or empty datumsPtr found.", op::Priority::High);
+	}
+	catch (const std::exception& e)
+	{
+		op::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+	}
+}
+
+
+// Shows a blue rectangle around detected face
+void showFaceRect(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
+{
+	auto faceKeyPoints = datumsPtr->at(0)->faceKeypoints;
+	int len = FACE_POINTS * 3;
+
+	int x_min = INT_MAX;
+	int x_max = 0;
+	int y_min = INT_MAX;
+	int y_max = 0;
+
+	// get extreme points
+	for (size_t i = 0; i < len; i++)
+	{
+		int val = faceKeyPoints[i];
+		if (i % 3 == 0) {
+			x_max = max(x_max, val);
+			x_min = min(x_min, val);
+		}
+		else if (i % 3 == 1)
+		{
+			y_max = max(y_max, val);
+			y_min = min(y_min, val);
+		}
+	}
+
+	auto rect = cv::Rect{ x_min, y_min, x_max - x_min, y_max - y_min };
+	cv::rectangle(datumsPtr->at(0)->cvOutputData, rect, cv::Scalar { 255, 0, 0 });
+}
+
+void showFace(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
+{
+	auto faceKeyPoints = datumsPtr->at(0)->faceKeypoints;
+	cv::Scalar color = cv::Scalar{ 255, 0, 0 };
+
+	// highlight facePoints colored depending on group
+	for (size_t i = 0; i < FACE_POINTS; i++)
+	{
+		int x = faceKeyPoints[3 * i];
+		int y = faceKeyPoints[3 * i + 1];
+
+		if (i >= 31) {
+			color = cv::Scalar(0, 255 - 4 * (i - 31), 0 + 4 * (i - 31));
+		}
+		else if (i >= 27) {
+			color = cv::Scalar(255, 255, 0);
+		}
+		else if (i >= 17)
+		{
+			color = cv::Scalar(255, 0, 255);
+		}
+
+		auto rect = cv::Rect{ x, y, 1, 1 };
+		cv::rectangle(datumsPtr->at(0)->cvOutputData, rect, color);
+	}
+}
+
+/*
+
+FacePoints:
+	00-16 => jawline left to right
+	17-26 => eyebrows left to right
+	27-30 => ridge of the nose top to bottom
+	31-70 => ...
+
+*/
+
+/*
+Determine face direction based on distance between ears and nose. If the face
+is turned, the "hidden" ear point is nearly at the same place as the nose.
+Thus the distance between them gets very small, while the distance to the
+other ear increases with the turn angle.
+*/
+void calcFaceDirection(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
+{
+	auto faceKeyPoints = datumsPtr->at(0)->faceKeypoints;
+
+	// Distance: nose tip - left ear
+	int leftDist = faceKeyPoints[30 * 3] - faceKeyPoints[0 * 3];
+	// Distance: right ear - nose tip
+	int rightDist = faceKeyPoints[16 * 3] - faceKeyPoints[30 * 3];
+
+	//std::cout << leftDist << ", " << rightDist << "\n";
+
+	if (leftDist < turnThreshold && rightDist > turnThreshold) {
+		if (faceDirection != DIR_LEFT) {
+			faceDirection = DIR_LEFT;
+			std::cout << "looking left\n";
+			publisher.send("left");
+		}
+	}
+	else if (leftDist > turnThreshold && rightDist < turnThreshold) {
+		if (faceDirection != DIR_RIGHT) {
+			faceDirection = DIR_RIGHT;
+			std::cout << "looking right\n";
+			publisher.send("right");
+		}
+	}
+	else if (faceDirection != DIR_STRAIGHT)
+	{
+		faceDirection = DIR_STRAIGHT;
+		std::cout << "looking straight\n";
+		publisher.send("straight");
+	}
+}
+
+void evaluateKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>>& datumsPtr)
+{
+	try
+	{
+		// Example: How to use the pose keypoints
+		if (datumsPtr != nullptr && !datumsPtr->empty())
+		{
+			// Skip if no faces detected
+			if (datumsPtr->at(0)->faceKeypoints.getSize(0) == 0) return;
+			//showFaceRect(datumsPtr);
+			//showFace(datumsPtr);
+			calcFaceDirection(datumsPtr);
 		}
 		else
 			op::log("Nullptr or empty datumsPtr found.", op::Priority::High);
@@ -65,6 +195,7 @@ void openPose() {
 
 				// Do something with keypoints
 				//printKeypoints(datumProcessed);
+				evaluateKeypoints(datumProcessed);
 
 				sharedFrame_op.set(res);
 				// op::log("Frame processed", op::Priority::High);
@@ -179,6 +310,14 @@ void camWindow() {
 			break;
 		case 'm':
 			mirror = !mirror;
+			break;
+		case 'w':
+			turnThreshold += 1;
+			std::cout << "new threshold: " << turnThreshold << "\n";
+			break;
+		case 's':
+			turnThreshold -= 1;
+			std::cout << "new threshold: " << turnThreshold << "\n";
 			break;
 		default:
 			break;

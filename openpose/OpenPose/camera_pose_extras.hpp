@@ -1,9 +1,9 @@
 #pragma once
 // OpenPose dependencies
 #include <openpose/headers.hpp>
+#include <zmq.hpp>
 
 #define FPS_UPDATE_RATE 1
-#define SCALE_FACTOR 4
 
 class FPSCounter
 {
@@ -28,4 +28,17 @@ public:
 private:
 	cv::Mat frame;
 	std::mutex mtx;
+};
+
+class ZMQPublisher
+{
+public:
+	ZMQPublisher(std::string topic, std::string addr = "localhost", int port = 4000);
+	~ZMQPublisher();
+	void send(std::string msg);
+
+private:
+	zmq::context_t context;
+	zmq::socket_t socket;
+	std::string topic;
 };
