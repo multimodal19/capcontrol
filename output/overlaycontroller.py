@@ -82,6 +82,8 @@ def handler(msg, controller):
         controller.rage_overlay()
     elif msg == "cloud":
         controller.cloud_overlay()
+    elif msg in ["left", "right", "straight"]:
+        controller.send_command(f"overlays/filter_{msg}.png")
     else:
         print("Unknown message: {}".format(msg))
 

@@ -19,7 +19,15 @@ def speech_handler(msg):
         print("Showing the cloud overlay")
         overlay.send("cloud")
     else:
-        print("Unknown speech command")
+        print(f"Unknown speech command: {msg}")
+
+
+def openpose_handler(msg):
+    if msg in ["left", "right", "straight"]:
+        print(f"Looking {msg}")
+        overlay.send(msg)
+    else:
+        print(f"Unknown openpose command: {msg}")
 
 
 # Abort on missing arguments
@@ -37,8 +45,10 @@ broker.start()
 overlay = Publisher("127.0.0.1", port_in, "overlay")
 logi = Publisher("127.0.0.1", port_in, "logicap")
 speech = Subscriber("127.0.0.1", port_out, "speech", speech_handler)
+openpose = Subscriber("127.0.0.1", port_out, "openpose", openpose_handler)
 # Start subscribers
 speech.start()
+openpose.start()
 
 # Don't terminate immediately
 print("Press enter to quit.")
