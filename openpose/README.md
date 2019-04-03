@@ -8,14 +8,22 @@ OpenPose and processing as many of the frames as it can.
   be fine too)
     - C++ Desktop development component
 - [OpenPose C++ API](https://github.com/CMU-Perceptual-Computing-Lab/openpose)
+- The ZeroMQ library [libzmq](https://github.com/zeromq/libzmq) as well as its
+  C++ bindings [cppzmq](https://github.com/zeromq/cppzmq).
 
 
 ## Installation
 1. Build OpenPose. Please refer to the [installation guide](https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/installation.md#openpose---installation).
-2. In the files `camera_pose.vcxproj` & `camera_pose.vcxproj.user` from the
+2. Build the ZeroMQ library
+   - Place the built ZeroMQ `*.lib` in the openpose directory at
+     `3rdparty\zeromq\lib\*.lib`.
+   - Place the ZeroMQ header files in the openpose directory at
+     `3rdparty\zeromq\include\`.
+   - Place the built ZeroMQ `*.dll` in the openpose output directory.
+3. In the files `camera_pose.vcxproj` & `camera_pose.vcxproj.user` from the
   `OpenPose` subfolder, replace all occurrences of
   `D:\Documents\GitHub\openpose` with your own OpenPose installation path.
-3. Open and build solution with Visual Studio.
+4. Open and build solution with Visual Studio.
 
 ## Usage
 Either just run the application directly from Visual Studio or from the build
@@ -28,3 +36,5 @@ The following interaction is possible:
 | <kbd>Space</kbd> | Toggle show processed frames |
 | <kbd>f</kbd>     | Toggle FPS indicator         |
 | <kbd>m</kbd>     | Toggle mirroring             |
+| <kbd>w</kbd>     | Increase turn threshold      |
+| <kbd>s</kbd>     | Decrease turn threshold      |
