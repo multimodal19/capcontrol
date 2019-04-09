@@ -8,6 +8,7 @@ SharedFrame sharedFrame_op;
 ZMQPublisher publisher("openpose");
 
 bool stopped = false;
+bool mirrored = true;
 cv::Rect screenSize;
 int turnThreshold = 10;
 int faceDirection = DIR_STRAIGHT;
@@ -71,12 +72,16 @@ void calcIndexPosition(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 		// Get index finger position scaled back to full screen
 		int ix = handKeyPoints[HAND_INDEX] * SCALE_FACTOR;
 		int iy = handKeyPoints[HAND_INDEX + 1] * SCALE_FACTOR;
-
-		//std::cout << ix << ", " << iy << "\n";
 		
-		// Send position in format: hand $i $ix $iy
+		// Take mirroring into account to figure out correct hand
+		std::string which = (mirrored ? 1 - i : i) == 0 ? "left" : "right";
+
+		//std::cout << which << ix << ", " << iy << "\n";
+
+		// Send position in format: hand $which $ix $iy
+		// Reverse hands if in mirrored mode
 		std::stringstream ss;
-		ss << "hand " << i << " " << ix << " " << iy;
+		ss << "hand " << which << " " << ix << " " << iy;
 		publisher.send(ss.str());
 	}
 }
@@ -161,7 +166,6 @@ void openPose() {
 
 void camWindow() {
 	std::string title = OPEN_POSE_NAME_AND_VERSION + " - PREVIEW";
-	bool mirror = true;
 	bool show_original = true;
 	bool show_fps = true;
 
@@ -191,7 +195,7 @@ void camWindow() {
 	{
 		cv::Mat frame;
 		vc >> frame;
-		if (mirror) {
+		if (mirrored) {
 			cv::flip(frame, frame, 1);
 		}
 
@@ -212,7 +216,7 @@ void camWindow() {
 	{
 		// Read next frame
 		vc >> frame;
-		if (mirror) {
+		if (mirrored) {
 			cv::flip(frame, frame, 1);
 		}
 		sharedFrame.set(frame.clone());
@@ -256,7 +260,7 @@ void camWindow() {
 			show_fps = !show_fps;
 			break;
 		case 'm':
-			mirror = !mirror;
+			mirrored = !mirrored;
 			break;
 		case 'w':
 			turnThreshold += 1;
