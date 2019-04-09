@@ -13,114 +13,6 @@ int turnThreshold = 10;
 int faceDirection = DIR_STRAIGHT;
 
 
-// Source: OpenPose example file 02_whole_body_from_image_default.cpp
-void printKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>>& datumsPtr)
-{
-	try
-	{
-		// Example: How to use the pose keypoints
-		if (datumsPtr != nullptr && !datumsPtr->empty())
-		{
-			op::log("Body keypoints: " + datumsPtr->at(0)->poseKeypoints.toString(), op::Priority::High);
-			op::log("Face keypoints: " + datumsPtr->at(0)->faceKeypoints.toString(), op::Priority::High);
-			op::log("Left hand keypoints: " + datumsPtr->at(0)->handKeypoints[0].toString(), op::Priority::High);
-			op::log("Right hand keypoints: " + datumsPtr->at(0)->handKeypoints[1].toString(), op::Priority::High);
-		}
-		else
-			op::log("Nullptr or empty datumsPtr found.", op::Priority::High);
-	}
-	catch (const std::exception& e)
-	{
-		op::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
-	}
-}
-
-
-// Shows a blue rectangle around detected face
-void showFaceRect(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
-{
-	auto faceKeyPoints = datumsPtr->at(0)->faceKeypoints;
-	int len = FACE_POINTS * 3;
-
-	int x_min = INT_MAX;
-	int x_max = 0;
-	int y_min = INT_MAX;
-	int y_max = 0;
-
-	// get extreme points
-	for (size_t i = 0; i < len; i++)
-	{
-		int val = faceKeyPoints[i];
-		if (i % 3 == 0) {
-			x_max = max(x_max, val);
-			x_min = min(x_min, val);
-		}
-		else if (i % 3 == 1)
-		{
-			y_max = max(y_max, val);
-			y_min = min(y_min, val);
-		}
-	}
-
-	auto rect = cv::Rect{ x_min, y_min, x_max - x_min, y_max - y_min };
-	cv::rectangle(datumsPtr->at(0)->cvOutputData, rect, cv::Scalar { 255, 0, 0 });
-}
-
-void showFace(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
-{
-	auto faceKeyPoints = datumsPtr->at(0)->faceKeypoints;
-	cv::Scalar color = cv::Scalar{ 255, 0, 0 };
-
-	// highlight facePoints colored depending on group
-	for (size_t i = 0; i < FACE_POINTS; i++)
-	{
-		int x = faceKeyPoints[3 * i];
-		int y = faceKeyPoints[3 * i + 1];
-
-		if (i >= 31) {
-			color = cv::Scalar(0, 255 - 4 * (i - 31), 0 + 4 * (i - 31));
-		}
-		else if (i >= 27) {
-			color = cv::Scalar(255, 255, 0);
-		}
-		else if (i >= 17)
-		{
-			color = cv::Scalar(255, 0, 255);
-		}
-
-		auto rect = cv::Rect{ x, y, 1, 1 };
-		cv::rectangle(datumsPtr->at(0)->cvOutputData, rect, color);
-	}
-}
-
-void showHand(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
-{
-	auto handKeyPoints = datumsPtr->at(0)->handKeypoints[0];
-	if (handKeyPoints.getSize(0) == 0) return;
-
-	// highlight handPoints colored in gradient
-	for (size_t i = 0; i < HAND_POINTS; i++)
-	{
-		int x = handKeyPoints[3 * i];
-		int y = handKeyPoints[3 * i + 1];
-
-		cv::Scalar color = cv::Scalar(0, 255 - 12 * (i), 0 + 12 * (i));
-
-		auto rect = i == 8 ? cv::Rect{ x - 3, y - 3, 6, 6 } : cv::Rect{ x, y, 1, 1 };
-		cv::rectangle(datumsPtr->at(0)->cvOutputData, rect, color);
-	}
-}
-
-/*
-
-FacePoints:
-	00-16 => jawline left to right
-	17-26 => eyebrows left to right
-	27-30 => ridge of the nose top to bottom
-	31-70 => ...
-
-*/
-
 /*
 Determine face direction based on distance between ears and nose. If the face
 is turned, the "hidden" ear point is nearly at the same place as the nose.
@@ -131,9 +23,11 @@ void calcFaceDirection(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 {
 	auto faceKeyPoints = datumsPtr->at(0)->faceKeypoints;
 
-	// Distance: nose tip - left ear
+	// Skip if accuracy is too low
+	if (faceKeyPoints[FACE_NOSE_TIP + 2] < FACE_THRESHOLD) return;
+
+	// Get horizontal distances between important points
 	int leftDist = faceKeyPoints[FACE_NOSE_TIP] - faceKeyPoints[FACE_LEFT_EAR];
-	// Distance: right ear - nose tip
 	int rightDist = faceKeyPoints[FACE_RIGHT_EAR] - faceKeyPoints[FACE_NOSE_TIP];
 
 	//std::cout << leftDist << ", " << rightDist << "\n";
@@ -196,11 +90,8 @@ void evaluateKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 		{
 			// Skip if no faces detected
 			if (datumsPtr->at(0)->faceKeypoints.getSize(0) > 0) {
-				//showFaceRect(datumsPtr);
-				//showFace(datumsPtr);
 				calcFaceDirection(datumsPtr);
 			}
-			//showHand(datumsPtr);
 			calcIndexPosition(datumsPtr);
 		}
 		else
