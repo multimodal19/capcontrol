@@ -1,16 +1,20 @@
 # overlay
 
 ## Build Requirements
-- Visual Studio 2017 (Tested with version 15.9.9, but other versions should be fine too)
+- Visual Studio 2017 (Tested with version 15.9.9, but other versions should be
+  fine too)
     - .NET Desktop development component
 
 ## Installation
 Open and build solution with Visual Studio.
 
 ## Usage
-Either just run the application directly from Visual Studio or from the bin directory.
+Either just run the application directly from Visual Studio or from the bin
+directory.
 
-Commands are read from `stdin` and via TCP on port `3000`.
+Commands are read from `stdin` and via ZeroMQ subscriber under topic `overlay`.
+For the subscriber, host address and port can be changed via command line
+arguments, default is: `CameraOverlay.exe localhost 4001`.
 
 ```
 command structure: [OPTIONS] IMG_SOURCE
@@ -29,4 +33,5 @@ command structure: [OPTIONS] IMG_SOURCE
 IMG_SOURCE       Required. file path or URL pointing to image.
 ```
 
-Use <kbd>Esc</kbd> to quit and <kbd>Space</kbd> to switch between the default overlays.
+Use <kbd>Esc</kbd> to quit and <kbd>Space</kbd> to switch between the two
+default overlays.
