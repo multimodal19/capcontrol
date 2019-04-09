@@ -24,9 +24,14 @@ def speech_handler(msg):
 
 
 def openpose_handler(msg):
-    if msg in ["left", "right", "straight"]:
-        print(f"Looking {msg}")
-        overlay.send(f"overlays/filter_{msg}.png")
+    kind, *args = msg.split(" ")
+
+    if kind == "face":
+        direction = args[0]
+        print(f"Looking {direction}")
+        overlay.send(f"overlays/filter_{direction}.png")
+    elif kind == "hand":
+        print(f"hand data: {', '.join(args)}")
     else:
         print(f"Unknown openpose command: {msg}")
 

@@ -93,6 +93,24 @@ void showFace(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & d
 	}
 }
 
+void showHand(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
+{
+	auto handKeyPoints = datumsPtr->at(0)->handKeypoints[0];
+	if (handKeyPoints.getSize(0) == 0) return;
+
+	// highlight handPoints colored in gradient
+	for (size_t i = 0; i < HAND_POINTS; i++)
+	{
+		int x = handKeyPoints[3 * i];
+		int y = handKeyPoints[3 * i + 1];
+
+		cv::Scalar color = cv::Scalar(0, 255 - 12 * (i), 0 + 12 * (i));
+
+		auto rect = i == 8 ? cv::Rect{ x - 3, y - 3, 6, 6 } : cv::Rect{ x, y, 1, 1 };
+		cv::rectangle(datumsPtr->at(0)->cvOutputData, rect, color);
+	}
+}
+
 /*
 
 FacePoints:
@@ -114,9 +132,9 @@ void calcFaceDirection(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 	auto faceKeyPoints = datumsPtr->at(0)->faceKeypoints;
 
 	// Distance: nose tip - left ear
-	int leftDist = faceKeyPoints[30 * 3] - faceKeyPoints[0 * 3];
+	int leftDist = faceKeyPoints[FACE_NOSE_TIP] - faceKeyPoints[FACE_LEFT_EAR];
 	// Distance: right ear - nose tip
-	int rightDist = faceKeyPoints[16 * 3] - faceKeyPoints[30 * 3];
+	int rightDist = faceKeyPoints[FACE_RIGHT_EAR] - faceKeyPoints[FACE_NOSE_TIP];
 
 	//std::cout << leftDist << ", " << rightDist << "\n";
 
@@ -124,21 +142,48 @@ void calcFaceDirection(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 		if (faceDirection != DIR_LEFT) {
 			faceDirection = DIR_LEFT;
 			std::cout << "looking left\n";
-			publisher.send("left");
+			publisher.send("face left");
 		}
 	}
 	else if (leftDist > turnThreshold && rightDist < turnThreshold) {
 		if (faceDirection != DIR_RIGHT) {
 			faceDirection = DIR_RIGHT;
 			std::cout << "looking right\n";
-			publisher.send("right");
+			publisher.send("face right");
 		}
 	}
 	else if (faceDirection != DIR_STRAIGHT)
 	{
 		faceDirection = DIR_STRAIGHT;
 		std::cout << "looking straight\n";
-		publisher.send("straight");
+		publisher.send("face straight");
+	}
+}
+
+/*
+Determine Index finger position of both hands.
+*/
+void calcIndexPosition(const std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>> & datumsPtr)
+{
+	for (size_t i = 0; i < 2; i++)
+	{
+		auto handKeyPoints = datumsPtr->at(0)->handKeypoints[i];
+
+		// Skip if no hand detected
+		if (handKeyPoints.getSize(0) == 0) continue;
+		// Skip if values are unreliable
+		if (handKeyPoints[HAND_INDEX + 2] < HAND_THRESHOLD) continue;
+
+		// Get index finger position scaled back to full screen
+		int ix = handKeyPoints[HAND_INDEX] * SCALE_FACTOR;
+		int iy = handKeyPoints[HAND_INDEX + 1] * SCALE_FACTOR;
+
+		//std::cout << ix << ", " << iy << "\n";
+		
+		// Send position in format: hand $i $ix $iy
+		std::stringstream ss;
+		ss << "hand " << i << " " << ix << " " << iy;
+		publisher.send(ss.str());
 	}
 }
 
@@ -150,10 +195,13 @@ void evaluateKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 		if (datumsPtr != nullptr && !datumsPtr->empty())
 		{
 			// Skip if no faces detected
-			if (datumsPtr->at(0)->faceKeypoints.getSize(0) == 0) return;
-			//showFaceRect(datumsPtr);
-			//showFace(datumsPtr);
-			calcFaceDirection(datumsPtr);
+			if (datumsPtr->at(0)->faceKeypoints.getSize(0) > 0) {
+				//showFaceRect(datumsPtr);
+				//showFace(datumsPtr);
+				calcFaceDirection(datumsPtr);
+			}
+			//showHand(datumsPtr);
+			calcIndexPosition(datumsPtr);
 		}
 		else
 			op::log("Nullptr or empty datumsPtr found.", op::Priority::High);
@@ -170,6 +218,14 @@ void openPose() {
 		// Configuring OpenPose
 		op::log("Configuring OpenPose...", op::Priority::High);
 		op::Wrapper opWrapper{ op::ThreadManagerMode::Asynchronous };
+
+		// Limit to 1 person
+		op::WrapperStructPose poseConfig;
+		poseConfig.numberPeopleMax = 1;
+		opWrapper.configure(poseConfig);
+
+		// Separate output display
+		//opWrapper.configure(op::WrapperStructGui{ op::DisplayMode::Display2D });
 
 		// Add hand and face
 		opWrapper.configure(op::WrapperStructFace{ true });
