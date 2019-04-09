@@ -34,7 +34,7 @@ namespace CameraOverlay
             InitializeComponent();
 
             commandReaders.Add(new StdioReader());
-            commandReaders.Add(new TcpReader());
+            commandReaders.Add(new ZMQReader("overlay"));
             commandReaders.ForEach(reader => reader.OnCommandReceived += HandleCommand);
             commandReaders.ForEach(reader => reader.Start());
         }

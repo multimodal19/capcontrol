@@ -6,6 +6,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using NetMQ;
+using NetMQ.Sockets;
 
 namespace CameraOverlay
 {
@@ -17,76 +19,71 @@ namespace CameraOverlay
         void Stop();
     }
 
-    class TcpReader : ICommandReader
+    class ZMQReader : ICommandReader
     {
         public event Action<string> OnCommandReceived;
 
         private bool running;
-        private TcpListener server;
-        private TcpClient client;
+        private readonly string topic;
+        private readonly string host;
+        private readonly int port;
+        private SubscriberSocket socket;
 
-        public async void Start()
+        public ZMQReader(string topic, string host = "localhost", int port = 4001)
         {
-            running = true;
-            await Run();
+            this.topic = topic;
+            this.host = host;
+            this.port = port;
         }
 
-        public async Task Run()
+        public void Start()
+        {
+            running = true;
+            Run();
+        }
+
+        private async void Run()
         {
             try
             {
-                // Only listen locally
-                int port = 3000;
-                IPAddress addr = IPAddress.Loopback;
-
-                server = new TcpListener(addr, port);
-                server.Start();
-                Console.WriteLine($"Listening on {addr}:{port}");
+                // Create ZeroMQ Subscriber & subscribe to given topic
+                socket = new SubscriberSocket();
+                socket.Connect($"tcp://{host}:{port}");
+                socket.Subscribe(topic, Encoding.UTF8);
+                Console.WriteLine($"Subscriber connected to {host}:{port}");
 
                 while (running)
                 {
-                    Console.WriteLine("Waiting for a connection...");
-                    client = await server.AcceptTcpClientAsync();
-                    Console.WriteLine("Connected!");
-
-
-                    // Get stream to read and write
-                    NetworkStream stream = client.GetStream();
-                    string data = null;
-
-                    using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
-                    //using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8))
-                    {
-                        while ((data = await reader.ReadLineAsync()) != null)
+                    string msg = await Task.Run(() => {
+                        try
                         {
-                            if (!running) break;
-                            OnCommandReceived.Invoke(data);
-
-                            // Echo: send input back
-                            //await writer.WriteAsync(data);
-                            //await writer.FlushAsync();
+                            return socket.ReceiveFrameString(Encoding.UTF8);
                         }
-                    }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"ZMQReader exception: {e}");
+                            return null;
+                        }
+                    });
+                    if (msg == null) continue;
 
-                    client.Close();
+                    // Only pass on the message, strip off topic!
+                    OnCommandReceived.Invoke(msg.Substring(topic.Length + 1));
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine($"TcpReader exception: {e}");
-            }
-            finally
-            {
-                server.Stop();
-                Console.WriteLine("Stopped listening");
+                Console.WriteLine($"ZMQReader exception: {e}");
+                socket.Close();
+                Console.WriteLine("Stopped subscriber");
             }
         }
 
         public void Stop()
         {
+            // Clean up
             running = false;
-            client?.Close();
-            server?.Stop();
+            socket?.Close();
         }
     }
 
@@ -95,13 +92,13 @@ namespace CameraOverlay
         public event Action<string> OnCommandReceived;
         private bool running;
 
-        public async void Start()
+        public void Start()
         {
             running = true;
-            await Run();
+            Run();
         }
 
-        public async Task Run()
+        public async void Run()
         {
             while (true)
             {
