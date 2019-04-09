@@ -25,15 +25,13 @@ namespace CameraOverlay
 
         private bool running;
         private readonly string topic;
-        private readonly string host;
-        private readonly int port;
+        private readonly string addr;
         private SubscriberSocket socket;
 
-        public ZMQReader(string topic, string host = "localhost", int port = 4001)
+        public ZMQReader(string topic, string addr)
         {
             this.topic = topic;
-            this.host = host;
-            this.port = port;
+            this.addr = addr;
         }
 
         public void Start()
@@ -48,9 +46,9 @@ namespace CameraOverlay
             {
                 // Create ZeroMQ Subscriber & subscribe to given topic
                 socket = new SubscriberSocket();
-                socket.Connect($"tcp://{host}:{port}");
+                socket.Connect($"tcp://{addr}");
                 socket.Subscribe(topic, Encoding.UTF8);
-                Console.WriteLine($"Subscriber connected to {host}:{port}");
+                Console.WriteLine($"Subscriber connected to {addr}");
 
                 while (running)
                 {

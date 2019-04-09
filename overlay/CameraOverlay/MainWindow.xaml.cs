@@ -33,8 +33,21 @@ namespace CameraOverlay
         {
             InitializeComponent();
 
+            // Get connection arguments if any - otherwise use default
+            string addr = "localhost:4001";
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length < 3)
+            {
+                Console.WriteLine($"No arguments specified, using default values!");
+            }
+            else
+            {
+                addr = $"{args[1]}:{args[2]}";
+            }
+
+            // Setup & start command readers
             commandReaders.Add(new StdioReader());
-            commandReaders.Add(new ZMQReader("overlay"));
+            commandReaders.Add(new ZMQReader("overlay", addr));
             commandReaders.ForEach(reader => reader.OnCommandReceived += HandleCommand);
             commandReaders.ForEach(reader => reader.Start());
         }
