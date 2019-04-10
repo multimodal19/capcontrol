@@ -5,7 +5,7 @@
 FPSCounter fpsCounter_op;
 SharedFrame sharedFrame;
 SharedFrame sharedFrame_op;
-ZMQPublisher publisher("openpose");
+ZMQPublisher* publisher;
 
 bool stopped = false;
 bool mirrored = true;
@@ -31,27 +31,27 @@ void calcFaceDirection(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 	int leftDist = faceKeyPoints[FACE_NOSE_TIP] - faceKeyPoints[FACE_LEFT_EAR];
 	int rightDist = faceKeyPoints[FACE_RIGHT_EAR] - faceKeyPoints[FACE_NOSE_TIP];
 
-	//std::cout << leftDist << ", " << rightDist << "\n";
+	//std::cout << leftDist << ", " << rightDist << std::endl;
 
 	if (leftDist < turnThreshold && rightDist > turnThreshold) {
 		if (faceDirection != DIR_LEFT) {
 			faceDirection = DIR_LEFT;
-			std::cout << "looking left\n";
-			publisher.send("face left");
+			std::cout << "looking left" << std::endl;
+			publisher->send("face left");
 		}
 	}
 	else if (leftDist > turnThreshold && rightDist < turnThreshold) {
 		if (faceDirection != DIR_RIGHT) {
 			faceDirection = DIR_RIGHT;
-			std::cout << "looking right\n";
-			publisher.send("face right");
+			std::cout << "looking right" << std::endl;
+			publisher->send("face right");
 		}
 	}
 	else if (faceDirection != DIR_STRAIGHT)
 	{
 		faceDirection = DIR_STRAIGHT;
-		std::cout << "looking straight\n";
-		publisher.send("face straight");
+		std::cout << "looking straight" << std::endl;
+		publisher->send("face straight");
 	}
 }
 
@@ -76,13 +76,13 @@ void calcIndexPosition(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 		// Take mirroring into account to figure out correct hand
 		std::string which = (mirrored ? 1 - i : i) == 0 ? "left" : "right";
 
-		//std::cout << which << ix << ", " << iy << "\n";
+		//std::cout << which << ix << ", " << iy << std::endl;
 
 		// Send position in format: hand $which $ix $iy
 		// Reverse hands if in mirrored mode
 		std::stringstream ss;
-		ss << "hand " << which << " " << ix << " " << iy;
-		publisher.send(ss.str());
+		ss << "hand " + which + " " << ix << " " << iy;
+		publisher->send(ss.str());
 	}
 }
 
@@ -187,7 +187,7 @@ void camWindow() {
 	//vc.set(cv::CAP_PROP_FPS, 60);
 
 	if (!vc.isOpened()) {
-		std::cerr << "Cannot access camera!";
+		std::cerr << "Cannot access camera!" << std::endl;
 		return;
 	}
 
@@ -264,11 +264,11 @@ void camWindow() {
 			break;
 		case 'w':
 			turnThreshold += 1;
-			std::cout << "new threshold: " << turnThreshold << "\n";
+			std::cout << "new threshold: " << turnThreshold << std::endl;
 			break;
 		case 's':
 			turnThreshold -= 1;
-			std::cout << "new threshold: " << turnThreshold << "\n";
+			std::cout << "new threshold: " << turnThreshold << std::endl;
 			break;
 		default:
 			break;
@@ -278,5 +278,15 @@ void camWindow() {
 
 int main(int argc, char *argv[])
 {
+	if (argc < 3) {
+		std::cout << "No arguments specified, using default values!" << std::endl;
+		publisher = new ZMQPublisher("openpose");
+	}
+	else {
+		std::stringstream ss;
+		ss << argv[1] << ":" << argv[2];
+		publisher = new ZMQPublisher("openpose", ss.str());
+	}
+
 	camWindow();
 }

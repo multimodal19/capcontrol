@@ -38,15 +38,13 @@ void SharedFrame::set(cv::Mat mat) {
 }
 
 
-ZMQPublisher::ZMQPublisher(std::string topic, std::string addr, int port)
+ZMQPublisher::ZMQPublisher(std::string topic, std::string addr)
 	// Prepare context and socket
 	: context(1), socket(context, ZMQ_PUB)
 {
 	this->topic = topic;
-	std::stringstream address;
-	address << "tcp://" << addr << ":" << port;
-	std::cout << "Connecting to the coordinator at " << address.str() << std::endl;
-	socket.connect(address.str());
+	std::cout << "Connecting to the coordinator at " + addr << std::endl;
+	socket.connect("tcp://" + addr);
 }
 
 ZMQPublisher::~ZMQPublisher()
@@ -57,9 +55,7 @@ ZMQPublisher::~ZMQPublisher()
 void ZMQPublisher::send(std::string msg)
 {
 	// Send message in format: topic!message
-	std::stringstream msgStream;
-	msgStream << topic << "!" << msg;
-	std::string message = msgStream.str();
+	std::string message = topic + "!" + msg;
 	zmq::message_t request(message.data(), message.size());
 	socket.send(request);
 }

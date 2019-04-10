@@ -33,7 +33,7 @@ private:
 class ZMQPublisher
 {
 public:
-	ZMQPublisher(std::string topic, std::string addr = "localhost", int port = 4000);
+	ZMQPublisher(std::string topic, std::string addr = "localhost:4000");
 	~ZMQPublisher();
 	void send(std::string msg);
 
