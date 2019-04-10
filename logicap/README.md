@@ -1,4 +1,4 @@
-# output
+# logicap
 
 ## Installation
 Install dependencies with
