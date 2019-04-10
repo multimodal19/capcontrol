@@ -3,6 +3,10 @@ from overlaywrapper import OverlayWrapper
 from communication import MessageBroker, Publisher, Subscriber
 
 
+# Global state
+shared_state = {'hands': {}}
+
+
 def speech_handler(msg):
     if msg == "start_stop":
         print("Starting/stopping recording")
@@ -19,6 +23,16 @@ def speech_handler(msg):
     elif msg == "cloud":
         print("Showing the cloud overlay")
         overlay.cloud_overlay()
+    elif msg == "next":
+        # Skip if no hand data was collected yet
+        if "right" not in shared_state["hands"]: return
+        print("Showing the popup")
+        # Show small image at index finger position
+        w = 200
+        x = shared_state["hands"]["right"][0] - int(w / 2)
+        y = shared_state["hands"]["right"][1] - int(w / 2)
+        # Replace with whatever image you like
+        overlay.send("D:/Downloads/mindblown.gif", x=x, y=y, width=w, animate=True)
     else:
         print(f"Unknown speech command: {msg}")
 
@@ -31,7 +45,9 @@ def openpose_handler(msg):
         print(f"Looking {direction}")
         overlay.send(f"overlays/filter_{direction}.png")
     elif kind == "hand":
-        print(f"hand data: {', '.join(args)}")
+        # Store hand data in global state
+        shared_state["hands"][args[0]] = list(map(int, args[1:]))
+        #print(f"hand data: {', '.join(args)}")
     else:
         print(f"Unknown openpose command: {msg}")
 

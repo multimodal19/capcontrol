@@ -14,7 +14,7 @@ class OverlayWrapper:
         self.send("overlays/filter_clouds.png", center=True)
 
     def send(self, overlay, x=None, y=None, width=None, height=None,
-             fade_in=None, fade_out=None, center=True, stretch=None, animate=None):
+             fade_in=None, fade_out=None, center=None, stretch=None, animate=None):
         """
         Send command to camera overlay.
 
