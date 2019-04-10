@@ -23,5 +23,9 @@
 With the activated virtualenv, run any of the Python files like
 `python demo_google.py`.
 
+For the Porcupine demo, run
+`python .\porcupine\porcupine_demo.py --keyword_file_paths
+.\porcupine\keywords\christina_windows.ppn`.
+
 To run the recognizer connecting to the MessageBroker, use
 `python sample_recognizer.py localhost 4000`.
