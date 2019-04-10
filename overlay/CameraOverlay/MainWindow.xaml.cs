@@ -82,6 +82,12 @@ namespace CameraOverlay
         // Supports file paths & URLs
         private bool LoadImage(string imageSource, bool animate)
         {
+            // Clear overlay. imageSource = null would also work but messes up the fade animation
+            if (imageSource == null || imageSource == "clear")
+            {
+                imageSource = "overlays/filter_clear.png";
+            }
+
             if (!Uri.TryCreate(imageSource, UriKind.RelativeOrAbsolute, out Uri imageUri))
             {
                 Console.WriteLine($"Invalid image source: {imageSource}");

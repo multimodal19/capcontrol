@@ -123,6 +123,9 @@
     <Resource Include="overlays\filter_right.png" />
     <Resource Include="overlays\filter_straight.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="overlays\filter_clear.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>XCOPY "$(ProjectDir)overlays" "$(TargetDir)overlays" /s /i /y /d</PostBuildEvent>

@@ -16,7 +16,7 @@ namespace CameraOverlay
             FadeOut = 200;
         }
 
-        [Value(0, Required = true, HelpText = "file path or URL pointing to image.")]
+        [Value(0, HelpText = "file path or URL pointing to image.")]
         public string ImageSource { get; set; }
 
         [Option('x', HelpText = "Horizontal offset (Default: 0).")]

@@ -5,6 +5,10 @@ class OverlayWrapper:
     def __init__(self, publisher):
         self.publisher = publisher
 
+    def clear(self):
+        """Show no overlay."""
+        self.send("clear")
+
     def rage_overlay(self):
         """Show default rage overlay."""
         self.send("overlays/filter_rage.png", center=True)
