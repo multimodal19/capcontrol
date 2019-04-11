@@ -20,12 +20,13 @@
 3. Install other dependencies with `pip install -r requirements.txt`.
 
 ## Usage
-With the activated virtualenv, run any of the Python files like
-`python demo_google.py`.
+
+To run the recognizer connecting to the MessageBroker, use
+`python recognizer.py localhost 4000`.
 
 For the Porcupine demo, run
 `python .\porcupine\porcupine_demo.py --keyword_file_paths
 .\porcupine\keywords\christina_windows.ppn`.
 
-To run the recognizer connecting to the MessageBroker, use
-`python sample_recognizer.py localhost 4000`.
+The other assorted demos can be run simply with something like
+`python demo_google.py`.
