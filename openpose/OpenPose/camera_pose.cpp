@@ -193,13 +193,19 @@ void camWindow() {
 
 	if (!vc.isOpened()) {
 		std::cerr << "Cannot access camera!" << std::endl;
-		return;
+		exit(EXIT_FAILURE);
 	}
 
 	// init
 	{
 		cv::Mat frame;
 		vc >> frame;
+
+		if (frame.empty()) {
+			std::cerr << "Camera stream empty!" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
 		if (mirrored) {
 			cv::flip(frame, frame, 1);
 		}
