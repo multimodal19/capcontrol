@@ -31,6 +31,11 @@ void calcFaceDirection(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 	int leftDist = faceKeyPoints[FACE_NOSE_TIP] - faceKeyPoints[FACE_LEFT_EAR];
 	int rightDist = faceKeyPoints[FACE_RIGHT_EAR] - faceKeyPoints[FACE_NOSE_TIP];
 
+	// Reverse direction if not in mirrored mode
+	if (!mirrored) {
+		std::swap(leftDist, rightDist);
+	}
+
 	//std::cout << leftDist << ", " << rightDist << std::endl;
 
 	if (leftDist < turnThreshold && rightDist > turnThreshold) {
