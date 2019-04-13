@@ -26,7 +26,7 @@ def listen_google():
                 speech.send("scene_3")
             elif "4" in text or "four" in text:
                 speech.send("scene_4")
-        elif "rage" in text:
+        elif "rage" in text or "radar" in text or "suck" in text:
             speech.send("rage")
         elif "cloud" in text:
             speech.send("cloud")
