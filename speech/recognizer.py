@@ -22,10 +22,15 @@ def listen_google():
                 speech.send("scene_1")
             elif "2" in text or "two" in text:
                 speech.send("scene_2")
+            elif "3" in text or "three" in text:
+                speech.send("scene_3")
+            elif "4" in text or "four" in text:
+                speech.send("scene_4")
         elif "rage" in text:
             speech.send("rage")
         elif "cloud" in text:
             speech.send("cloud")
+
     except sr.UnknownValueError:
         print("Google Speech Recognition could not understand audio")
     except sr.RequestError as e:

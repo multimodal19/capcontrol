@@ -49,10 +49,9 @@ def handler(msg, controller):
     """
     if msg == "start_stop":
         controller.start_stop()
-    elif msg == "scene_1":
-        controller.switch_scene(1)
-    elif msg == "scene_2":
-        controller.switch_scene(2)
+    elif "scene_" in msg:
+        scene = int(msg.replace("scene_", ""))
+        controller.switch_scene(scene)
     else:
         print("Unknown message: {}".format(msg))
 

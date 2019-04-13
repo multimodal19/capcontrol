@@ -11,12 +11,10 @@ def speech_handler(msg):
     if msg == "start_stop":
         print("Starting/stopping recording")
         logi.send("start_stop")
-    elif msg == "scene_1":
-        print("Changing to scene 1")
-        logi.send("scene_1")
-    elif msg == "scene_2":
-        print("Changing to scene 2")
-        logi.send("scene_2")
+    elif "scene_" in msg:
+        scene = msg.replace("scene_", "")
+        print(f"Changing to scene {scene}")
+        logi.send(f"scene_{scene}")
     elif msg == "rage":
         print("Showing the rage overlay")
         overlay.rage_overlay()
