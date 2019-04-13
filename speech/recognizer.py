@@ -111,9 +111,9 @@ if __name__ == "__main__":
         r.adjust_for_ambient_noise(source, 5)
 
     # start listening in the background
-    print("Now listening in the background for hotword 'Flamingo'")
+    print("Now listening in the background for hotword 'Christina'")
 
-    keyword_file_paths = ["porcupine/keywords/flamingo_windows.ppn"]
+    keyword_file_paths = ["porcupine/keywords/christina_windows.ppn"]
     library_path = "porcupine/libpv_porcupine.dll"
     model_file_path = "porcupine/porcupine_params.pv"
     sensitivities = [0.5]
