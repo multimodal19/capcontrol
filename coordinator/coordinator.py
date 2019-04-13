@@ -21,6 +21,9 @@ def speech_handler(msg):
     elif msg == "cloud":
         print("Showing the cloud overlay")
         overlay.cloud_overlay()
+    elif msg == "clear_overlay":
+        print("Clearing the overlay")
+        overlay.clear()
     elif msg == "next":
         # Skip if no hand data was collected yet
         if "right" not in shared_state["hands"]: return

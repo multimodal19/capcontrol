@@ -30,6 +30,8 @@ def listen_google():
             speech.send("rage")
         elif "cloud" in text:
             speech.send("cloud")
+        elif "clear" in text:
+            speech.send("clear_overlay")
 
     except sr.UnknownValueError:
         print("Google Speech Recognition could not understand audio")
