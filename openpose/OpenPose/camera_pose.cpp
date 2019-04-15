@@ -169,7 +169,33 @@ void openPose() {
 }
 
 
+/*
+Ask user to choose one from the installed cameras
+*/
+int chooseCamera() {
+	// Print information about the available cameras
+	std::cout << "Available cameras:" << std::endl;
+	auto devices = DeviceEnumerator::getVideoDevicesMap();
+	for (auto const &device : devices) {
+		std::cout << "(" << device.first << ") " + device.second.deviceName << std::endl;
+	}
+
+	// Prompt user to select a camera
+	int deviceCount = devices.size() - 1;
+	std::cout << "Select a camera (0 to " << deviceCount << "): ";
+	int index = 0;
+	if (!(std::cin >> index) || index < 0 || index > deviceCount) {
+		// Exit on invalid input
+		exit(EXIT_FAILURE);
+	}
+
+	return index;
+}
+
+
 cv::VideoCapture setupCapture() {
+	int cameraIndex = chooseCamera();
+
 	// Create fullscreen preview window
 	cv::namedWindow("SizeProbe", cv::WINDOW_NORMAL);
 	cv::setWindowProperty("SizeProbe", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
@@ -183,11 +209,11 @@ cv::VideoCapture setupCapture() {
 	cv::destroyAllWindows();
 
 	// Attempt to read from camera multiple times (necessary for USB/IP)
-	std::cout << "Trying to read from camera" << std::endl;
+	std::cout << "Trying to read from camera " << cameraIndex << std::endl;
 	for (size_t i = 0; i < 10; i++)
 	{
 		// Use DirectShow camera feed for full image
-		cv::VideoCapture vc(0 + cv::CAP_DSHOW);
+		cv::VideoCapture vc(cameraIndex + cv::CAP_DSHOW);
 		// Set up video capture using the window dimensions to get nice scaling
 		vc.set(cv::CAP_PROP_FRAME_WIDTH, width);
 		vc.set(cv::CAP_PROP_FRAME_HEIGHT, height);

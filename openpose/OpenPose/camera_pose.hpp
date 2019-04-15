@@ -1,6 +1,7 @@
 // Command-line user intraface
 #include <openpose/flags.hpp>
 #include <camera_pose_extras.hpp>
+#include <DeviceEnumerator/DeviceEnumerator.hpp>
 
 // Down-scale factor for raw image
 #define SCALE_FACTOR	4

@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClCompile Include="camera_pose_extras.cpp" />
     <ClCompile Include="camera_pose.cpp" />
+    <ClCompile Include="DeviceEnumerator\DeviceEnumerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="D:\Documents\GitHub\openpose\build\src\openpose\openpose.vcxproj">
@@ -154,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="camera_pose.hpp" />
     <ClInclude Include="camera_pose_extras.hpp" />
+    <ClInclude Include="DeviceEnumerator\DeviceEnumerator.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

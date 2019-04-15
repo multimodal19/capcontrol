@@ -7,10 +7,16 @@
     <ClCompile Include="camera_pose_extras.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DeviceEnumerator\DeviceEnumerator.cpp">
+      <Filter>Source Files\DeviceEnumerator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{CD4EF373-7F4D-30DB-8349-D27D19E2B173}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DeviceEnumerator">
+      <UniqueIdentifier>{9bfcfea7-b04e-449f-a725-ff9545bd3dce}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -19,6 +25,9 @@
     </ClInclude>
     <ClInclude Include="camera_pose.hpp">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceEnumerator\DeviceEnumerator.hpp">
+      <Filter>Source Files\DeviceEnumerator</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
