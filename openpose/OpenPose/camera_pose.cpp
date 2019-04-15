@@ -169,52 +169,70 @@ void openPose() {
 }
 
 
+cv::VideoCapture setupCapture() {
+	// Create fullscreen preview window
+	cv::namedWindow("SizeProbe", cv::WINDOW_NORMAL);
+	cv::setWindowProperty("SizeProbe", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+
+	// Get window dimensions
+	screenSize = cv::getWindowImageRect("SizeProbe");
+	int width = screenSize.width;
+	int height = screenSize.height;
+
+	// Destroy window again, to avoid gray window staying behind
+	cv::destroyAllWindows();
+
+	// Attempt to read from camera multiple times (necessary for USB/IP)
+	std::cout << "Trying to read from camera" << std::endl;
+	for (size_t i = 0; i < 10; i++)
+	{
+		// Use DirectShow camera feed for full image
+		cv::VideoCapture vc(0 + cv::CAP_DSHOW);
+		// Set up video capture using the window dimensions to get nice scaling
+		vc.set(cv::CAP_PROP_FRAME_WIDTH, width);
+		vc.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+		//vc.set(cv::CAP_PROP_AUTOFOCUS, 1);
+		//vc.set(cv::CAP_PROP_FPS, 60);
+
+		// Try again if unsuccessful
+		if (!vc.isOpened()) {
+			continue;
+		}
+
+		// Read test frame
+		cv::Mat frame;
+		vc >> frame;
+
+		// Try again if unsuccessful
+		if (frame.empty()) {
+			continue;
+		}
+
+		// Store testframe to avoid crash due to empty frame
+		if (mirrored) {
+			cv::flip(frame, frame, 1);
+		}
+		sharedFrame.set(frame.clone());
+		sharedFrame_op.set(frame.clone());
+
+		return vc;
+	}
+
+	std::cerr << "Cannot access camera!" << std::endl;
+	exit(EXIT_FAILURE);
+}
+
+
 void camWindow() {
 	std::string title = OPEN_POSE_NAME_AND_VERSION + " - PREVIEW";
 	bool show_original = true;
 	bool show_fps = true;
 
-	// Create fullscreen preview window
-	cv::namedWindow(title, cv::WINDOW_NORMAL);
-	cv::setWindowProperty(title, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
-	
-	// Get window dimensions
-	screenSize = cv::getWindowImageRect(title);
-	int width = screenSize.width;
-	int height = screenSize.height;
-
-	// Use DirectShow camera feed for full image
-	cv::VideoCapture vc = cv::VideoCapture(0 + cv::CAP_DSHOW);
-	// Set up video capture using the window dimensions to get nice scaling
-	vc.set(cv::CAP_PROP_FRAME_WIDTH, width);
-	vc.set(cv::CAP_PROP_FRAME_HEIGHT, height);
-	//vc.set(cv::CAP_PROP_AUTOFOCUS, 1);
-	//vc.set(cv::CAP_PROP_FPS, 60);
-
-	if (!vc.isOpened()) {
-		std::cerr << "Cannot access camera!" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	// init
-	{
-		cv::Mat frame;
-		vc >> frame;
-
-		if (frame.empty()) {
-			std::cerr << "Camera stream empty!" << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		if (mirrored) {
-			cv::flip(frame, frame, 1);
-		}
-
-		sharedFrame.set(frame.clone());
-		sharedFrame_op.set(frame.clone());
-	}
+	// Initialize camera source & preview window
+	cv::VideoCapture vc = setupCapture();
 
 	// Start OpenPose thread
+	std::cout << "Starting OpenPose" << std::endl;
 	std::thread op_thread = std::thread(&openPose);
 	
 	
@@ -222,6 +240,10 @@ void camWindow() {
 	FPSCounter fpsCounter;
 	int font = cv::FONT_HERSHEY_SIMPLEX;
 	cv::Scalar font_color = cv::Scalar{ 255, 255, 255 };
+
+	// Create fullscreen preview window
+	cv::namedWindow(title, cv::WINDOW_NORMAL);
+	cv::setWindowProperty(title, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
 
 	while (true)
 	{
