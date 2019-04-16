@@ -3,12 +3,14 @@
 
 // ============================ Shared variables ============================
 FPSCounter fpsCounter_op;
-SharedFrame sharedFrame;
+SharedFrame* sharedFrames = new SharedFrame[N_CAMERAS];
 SharedFrame sharedFrame_op;
 ZMQPublisher* publisher;
+std::vector<std::thread> camThreads;
 
 bool stopped = false;
 bool mirrored = true;
+bool cameraReady = false;
 cv::Rect screenSize;
 int turnThreshold = 10;
 int faceDirection = DIR_STRAIGHT;
@@ -143,7 +145,7 @@ void openPose() {
 
 		while (!stopped) {
 			// Process and display image
-			auto imageToProcess = sharedFrame.get();
+			auto imageToProcess = sharedFrames[0].get();
 			cv::resize(imageToProcess, imageToProcess, cv::Size{ width, height });
 			auto datumProcessed = opWrapper.emplaceAndPop(imageToProcess);
 			if (datumProcessed != nullptr)
@@ -184,7 +186,7 @@ int chooseCamera() {
 	int deviceCount = devices.size() - 1;
 	std::cout << "Select a camera (0 to " << deviceCount << "): ";
 	int index = 0;
-	if (!(std::cin >> index) || index < 0 || index > deviceCount) {
+	if (!(std::cin >> index) || index < 0) {
 		// Exit on invalid input
 		exit(EXIT_FAILURE);
 	}
@@ -192,10 +194,71 @@ int chooseCamera() {
 	return index;
 }
 
+/*
+Continuosly read from camera and store current frame
+*/
+void cameraLoop(cv::VideoCapture vc, int i) {
+	cv::Mat frame;
 
-cv::VideoCapture setupCapture() {
-	int cameraIndex = chooseCamera();
+	while (!stopped)
+	{
+		vc >> frame;
+		if (mirrored) {
+			cv::flip(frame, frame, 1);
+		}
+		sharedFrames[i].set(frame.clone());
+	}
+}
 
+/*
+Convenience method for cv::putText
+*/
+void cvWrite(cv::Mat frame, std::string text, int y = 50) {
+	double factor = (double)frame.rows / screenSize.height;
+
+	y *= factor;
+	double font_size = 2 * factor;
+	int font = cv::FONT_HERSHEY_SIMPLEX;
+	cv::Scalar font_color = cv::Scalar{ 255, 255, 255 };
+	cv::putText(frame, text, cv::Point{ 0, y }, font, font_size, font_color, 2, cv::LINE_AA);
+}
+
+
+/*
+Set up camera stream & read from camera
+*/
+void startCamera(int i, int cameraIndex, int width, int height) {
+	// Attempt to read from camera multiple times (necessary for USB/IP)
+	for (size_t _i = 0; _i < 10; _i++)
+	{
+		// Use DirectShow camera feed for full image
+		cv::VideoCapture vc(cameraIndex + cv::CAP_DSHOW);
+		// Set up video capture using the window dimensions to get nice scaling
+		vc.set(cv::CAP_PROP_FRAME_WIDTH, width);
+		vc.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+		//vc.set(cv::CAP_PROP_AUTOFOCUS, 1);
+		//vc.set(cv::CAP_PROP_FPS, 60);
+
+		// Read test frame and restart if unsuccessful
+		if (!vc.isOpened()) continue;
+		cv::Mat frame;
+		vc >> frame;
+		if (frame.empty()) continue;
+
+		if (i == 0) {
+			cameraReady = true;
+		}
+
+		// Success, start reading from camera
+		cameraLoop(vc, i);
+		return;
+	}
+
+	std::cerr << "Cannot access camera #" << i << " (" << cameraIndex << ")!" << std::endl;
+}
+
+
+void setupCapture() {
 	// Create fullscreen preview window
 	cv::namedWindow("SizeProbe", cv::WINDOW_NORMAL);
 	cv::setWindowProperty("SizeProbe", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
@@ -206,83 +269,64 @@ cv::VideoCapture setupCapture() {
 	int height = screenSize.height;
 
 	// Destroy window again, to avoid gray window staying behind
-	cv::destroyAllWindows();
+	cv::destroyWindow("SizeProbe");
 
-	// Attempt to read from camera multiple times (necessary for USB/IP)
-	std::cout << "Trying to read from camera " << cameraIndex << std::endl;
-	for (size_t i = 0; i < 10; i++)
+	// Ask which cameras to use, then start them
+	std::cout << std::endl;
+	std::vector<int> ids;
+	for (size_t i = 0; i < N_CAMERAS; i++)
 	{
-		// Use DirectShow camera feed for full image
-		cv::VideoCapture vc(cameraIndex + cv::CAP_DSHOW);
-		// Set up video capture using the window dimensions to get nice scaling
-		vc.set(cv::CAP_PROP_FRAME_WIDTH, width);
-		vc.set(cv::CAP_PROP_FRAME_HEIGHT, height);
-		//vc.set(cv::CAP_PROP_AUTOFOCUS, 1);
-		//vc.set(cv::CAP_PROP_FPS, 60);
-
-		// Try again if unsuccessful
-		if (!vc.isOpened()) {
-			continue;
-		}
-
-		// Read test frame
-		cv::Mat frame;
-		vc >> frame;
-
-		// Try again if unsuccessful
-		if (frame.empty()) {
-			continue;
-		}
-
-		// Store testframe to avoid crash due to empty frame
-		if (mirrored) {
-			cv::flip(frame, frame, 1);
-		}
-		sharedFrame.set(frame.clone());
-		sharedFrame_op.set(frame.clone());
-
-		return vc;
+		std::cout << "Choose camera #" << i << std::endl;
+		ids.push_back(chooseCamera());
+		std::cout << std::endl;
+	}
+	std::cout << "Starting cameras!" << std::endl;
+	for (size_t i = 0; i < N_CAMERAS; i++)
+	{
+		camThreads.push_back(std::thread(&startCamera, i, ids[i], width, height));
 	}
 
-	std::cerr << "Cannot access camera!" << std::endl;
-	exit(EXIT_FAILURE);
+	// Store placeholder images to avoid crashes
+	cv::Mat placeholder(1080, 1920, 16, cv::Scalar(0,0,0));
+	cvWrite(placeholder, "Image not ready", 100);
+	for (size_t i = 0; i < N_CAMERAS; i++)
+	{
+		sharedFrames[i].set(placeholder);
+	}
+	sharedFrame_op.set(placeholder);
 }
 
 
 void camWindow() {
 	std::string title = OPEN_POSE_NAME_AND_VERSION + " - PREVIEW";
 	bool show_original = true;
-	bool show_fps = true;
+	bool show_fps = false;
+	int i_camera = 0;
 
-	// Initialize camera source & preview window
-	cv::VideoCapture vc = setupCapture();
+	// Initialize camera sources
+	setupCapture();
 
 	// Start OpenPose thread
 	std::cout << "Starting OpenPose" << std::endl;
 	std::thread op_thread = std::thread(&openPose);
-	
+
+	// Wait for main camera before proceeding
+	while (!cameraReady) {
+		Sleep(100);
+	}
 	
 	cv::Mat frame;
 	FPSCounter fpsCounter;
-	int font = cv::FONT_HERSHEY_SIMPLEX;
-	cv::Scalar font_color = cv::Scalar{ 255, 255, 255 };
 
 	// Create fullscreen preview window
 	cv::namedWindow(title, cv::WINDOW_NORMAL);
 	cv::setWindowProperty(title, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
 
-	while (true)
+	while (!stopped)
 	{
-		// Read next frame
-		vc >> frame;
-		if (mirrored) {
-			cv::flip(frame, frame, 1);
-		}
-		sharedFrame.set(frame.clone());
-		fpsCounter.tick();
-
 		// Either use raw image from camera or processed one from OpenPose
-		cv::Mat window_frame = show_original ? frame : sharedFrame_op.get().clone();
+		frame = show_original ? sharedFrames[i_camera].get().clone() : sharedFrame_op.get().clone();
+		fpsCounter.tick();
 
 		// Show window & OpenPose FPS
 		if (show_fps) {
@@ -290,28 +334,19 @@ void camWindow() {
 			double fps = fpsCounter.getFPS();
 			double fps_o = fpsCounter_op.getFPS();
 			ss << std::fixed << std::setprecision(1) << fps << " - " << fps_o;
-
-			double font_size = 4;
-			int y = 100;
-			if (!show_original) {
-				font_size /= SCALE_FACTOR;
-				y /= SCALE_FACTOR;
-			}
-			cv::putText(window_frame, ss.str(), cv::Point{ 0, y }, font, font_size, font_color, 2, cv::LINE_AA);
+			cvWrite(frame, ss.str());
 		}
 		
 		// Show frame & check for keypress
-		cv::imshow(title, window_frame);
+		cv::imshow(title, frame);
 		int key = cv::waitKey(10) & 0xFF;
 
 		switch (key)
 		{
 		case 27: // escape
 			cv::destroyWindow(title);
-			vc.release();
 			stopped = true;
-			op_thread.join();
-			return;
+			break;
 		case ' ': // space
 			show_original = !show_original;
 			break;
@@ -329,9 +364,20 @@ void camWindow() {
 			turnThreshold -= 1;
 			std::cout << "new threshold: " << turnThreshold << std::endl;
 			break;
+		case 'c':
+			// Loop through available cameras
+			i_camera = (i_camera + 1) % N_CAMERAS;
+			break;
 		default:
 			break;
 		}
+	}
+
+	// Join all threads
+	op_thread.join();
+	for (auto &thread : camThreads)
+	{
+		thread.join();
 	}
 }
 

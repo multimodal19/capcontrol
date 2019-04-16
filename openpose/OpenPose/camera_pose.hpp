@@ -26,3 +26,5 @@
 #define DIR_LEFT -1
 #define DIR_STRAIGHT 0
 #define DIR_RIGHT 1
+
+#define N_CAMERAS 2
