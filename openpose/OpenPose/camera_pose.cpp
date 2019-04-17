@@ -14,6 +14,7 @@ bool cameraReady = false;
 cv::Rect screenSize;
 int turnThreshold = 10;
 int faceDirection = DIR_STRAIGHT;
+int activeCamera = 0;
 
 
 /*
@@ -316,26 +317,35 @@ void setupCapture()
 }
 
 
+/*
+Handle received messages from ZeroMQ
+*/
+void messageHandler(std::string msg)
+{
+	std::cout << " > " + msg << std::endl;
+
+	std::stringstream ss(msg);
+	std::string command;
+
+	if (!(ss >> command)) return;
+	if (command == "camera")
+	{
+		int cameraIndex;
+		if (!(ss >> cameraIndex)) return;
+		// Activate another camera if it exists
+		if (cameraIndex >= 0 && cameraIndex < camThreads.size())
+		{
+			activeCamera = cameraIndex;
+		}
+	}
+}
+
+
 void camWindow()
 {
 	std::string title = OPEN_POSE_NAME_AND_VERSION + " - PREVIEW";
 	bool show_original = true;
 	bool show_fps = false;
-	int i_camera = 0;
-
-	// Initialize camera sources
-	setupCapture();
-
-	// Start OpenPose thread
-	std::cout << "Starting OpenPose" << std::endl;
-	std::thread op_thread = std::thread(&openPose);
-
-	// Wait for main camera before proceeding
-	while (!cameraReady)
-	{
-		Sleep(100);
-	}
-
 	cv::Mat frame;
 	FPSCounter fpsCounter;
 
@@ -346,7 +356,7 @@ void camWindow()
 	while (!stopped)
 	{
 		// Either use raw image from camera or processed one from OpenPose
-		frame = show_original ? sharedFrames[i_camera]->get().clone() : sharedFrame_op.get().clone();
+		frame = show_original ? sharedFrames[activeCamera]->get().clone() : sharedFrame_op.get().clone();
 		fpsCounter.tick();
 
 		// Show window & OpenPose FPS
@@ -388,12 +398,50 @@ void camWindow()
 			break;
 		case 'c':
 			// Loop through available cameras
-			i_camera = (i_camera + 1) % camThreads.size();
+			activeCamera = (activeCamera + 1) % camThreads.size();
 			break;
 		default:
 			break;
 		}
 	}
+}
+
+int main(int argc, char *argv[])
+{
+	ZMQSubscriber* subscriber;
+
+	// Initialize communication
+	if (argc < 4)
+	{
+		std::cout << "No arguments specified, using default values!" << std::endl;
+		publisher = new ZMQPublisher("openpose");
+		subscriber = new ZMQSubscriber("camera", &messageHandler);
+	}
+	else
+	{
+		std::stringstream pubAddr;
+		std::stringstream subAddr;
+		pubAddr << argv[1] << ":" << argv[2];
+		subAddr << argv[1] << ":" << argv[3];
+		publisher = new ZMQPublisher("openpose", pubAddr.str());
+		subscriber = new ZMQSubscriber("camera", &messageHandler, subAddr.str());
+	}
+
+	// Initialize camera sources
+	setupCapture();
+
+	// Start OpenPose thread
+	std::cout << "Starting OpenPose" << std::endl;
+	std::thread op_thread = std::thread(&openPose);
+
+	// Wait for main camera before proceeding
+	while (!cameraReady)
+	{
+		Sleep(100);
+	}
+
+	// Run main window-loop
+	camWindow();
 
 	// Join all threads
 	op_thread.join();
@@ -401,21 +449,4 @@ void camWindow()
 	{
 		thread.join();
 	}
-}
-
-int main(int argc, char *argv[])
-{
-	if (argc < 3)
-	{
-		std::cout << "No arguments specified, using default values!" << std::endl;
-		publisher = new ZMQPublisher("openpose");
-	}
-	else
-	{
-		std::stringstream ss;
-		ss << argv[1] << ":" << argv[2];
-		publisher = new ZMQPublisher("openpose", ss.str());
-	}
-
-	camWindow();
 }

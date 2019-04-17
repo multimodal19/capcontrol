@@ -45,6 +45,7 @@ def openpose_handler(msg):
         direction = args[0]
         print(f"Looking {direction}")
         overlay.send(f"overlays/filter_{direction}.png")
+        camera.send("camera 1" if direction == "right" else "camera 0")
     elif kind == "hand":
         # Store hand data in global state
         shared_state["hands"][args[0]] = list(map(int, args[1:]))
@@ -67,6 +68,7 @@ broker.start()
 # Prepare publishers and subscribers
 overlay = OverlayWrapper(Publisher("127.0.0.1", port_in, "overlay"))
 logi = Publisher("127.0.0.1", port_in, "logicap")
+camera = Publisher("127.0.0.1", port_in, "camera")
 speech = Subscriber("127.0.0.1", port_out, "speech", speech_handler)
 openpose = Subscriber("127.0.0.1", port_out, "openpose", openpose_handler)
 # Start subscribers
