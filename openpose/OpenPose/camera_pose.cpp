@@ -34,21 +34,26 @@ void calcFaceDirection(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 	int rightDist = faceKeyPoints[FACE_RIGHT_EAR] - faceKeyPoints[FACE_NOSE_TIP];
 
 	// Reverse direction if not in mirrored mode
-	if (!mirrored) {
+	if (!mirrored)
+	{
 		std::swap(leftDist, rightDist);
 	}
 
 	//std::cout << leftDist << ", " << rightDist << std::endl;
 
-	if (leftDist < turnThreshold && rightDist > turnThreshold) {
-		if (faceDirection != DIR_LEFT) {
+	if (leftDist < turnThreshold && rightDist > turnThreshold)
+	{
+		if (faceDirection != DIR_LEFT)
+		{
 			faceDirection = DIR_LEFT;
 			std::cout << "looking left" << std::endl;
 			publisher->send("face left");
 		}
 	}
-	else if (leftDist > turnThreshold && rightDist < turnThreshold) {
-		if (faceDirection != DIR_RIGHT) {
+	else if (leftDist > turnThreshold && rightDist < turnThreshold)
+	{
+		if (faceDirection != DIR_RIGHT)
+		{
 			faceDirection = DIR_RIGHT;
 			std::cout << "looking right" << std::endl;
 			publisher->send("face right");
@@ -79,7 +84,7 @@ void calcIndexPosition(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 		// Get index finger position scaled back to full screen
 		int ix = handKeyPoints[HAND_INDEX] * SCALE_FACTOR;
 		int iy = handKeyPoints[HAND_INDEX + 1] * SCALE_FACTOR;
-		
+
 		// Take mirroring into account to figure out correct hand
 		std::string which = (mirrored ? 1 - i : i) == 0 ? "left" : "right";
 
@@ -101,7 +106,8 @@ void evaluateKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 		if (datumsPtr != nullptr && !datumsPtr->empty())
 		{
 			// Skip if no faces detected
-			if (datumsPtr->at(0)->faceKeypoints.getSize(0) > 0) {
+			if (datumsPtr->at(0)->faceKeypoints.getSize(0) > 0)
+			{
 				calcFaceDirection(datumsPtr);
 			}
 			calcIndexPosition(datumsPtr);
@@ -115,7 +121,8 @@ void evaluateKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 	}
 }
 
-void openPose() {
+void openPose()
+{
 	try
 	{
 		// Configuring OpenPose
@@ -143,7 +150,8 @@ void openPose() {
 		op::log("Starting thread(s)...", op::Priority::High);
 		opWrapper.start();
 
-		while (!stopped) {
+		while (!stopped)
+		{
 			// Process and display image
 			auto imageToProcess = sharedFrames[0]->get();
 			cv::resize(imageToProcess, imageToProcess, cv::Size{ width, height });
@@ -170,11 +178,13 @@ void openPose() {
 /*
 Ask user to choose one from the installed cameras
 */
-int chooseCamera() {
+int chooseCamera()
+{
 	// Print information about the available cameras
 	std::cout << "Available cameras:" << std::endl;
 	auto devices = DeviceEnumerator::getVideoDevicesMap();
-	for (auto const &device : devices) {
+	for (auto const &device : devices)
+	{
 		std::cout << "(" << device.first << ") " + device.second.deviceName << std::endl;
 	}
 
@@ -182,7 +192,8 @@ int chooseCamera() {
 	int deviceCount = devices.size() - 1;
 	std::cout << "Select a camera (0 to " << deviceCount << "): ";
 	int index = 0;
-	if (!(std::cin >> index) || index < 0 || index > deviceCount) {
+	if (!(std::cin >> index) || index < 0 || index > deviceCount)
+	{
 		// Exit on invalid input
 		exit(EXIT_FAILURE);
 	}
@@ -193,13 +204,15 @@ int chooseCamera() {
 /*
 Continuosly read from camera and store current frame
 */
-void cameraLoop(cv::VideoCapture vc, int i) {
+void cameraLoop(cv::VideoCapture vc, int i)
+{
 	cv::Mat frame;
 
 	while (!stopped)
 	{
 		vc >> frame;
-		if (mirrored) {
+		if (mirrored)
+		{
 			cv::flip(frame, frame, 1);
 		}
 		sharedFrames[i]->set(frame.clone());
@@ -209,7 +222,8 @@ void cameraLoop(cv::VideoCapture vc, int i) {
 /*
 Convenience method for cv::putText
 */
-void cvWrite(cv::Mat frame, std::string text, int y = 50) {
+void cvWrite(cv::Mat frame, std::string text, int y = 50)
+{
 	double factor = (double)frame.rows / screenSize.height;
 
 	y *= factor;
@@ -223,7 +237,8 @@ void cvWrite(cv::Mat frame, std::string text, int y = 50) {
 /*
 Set up camera stream & read from camera
 */
-void startCamera(int i, int cameraIndex, int width, int height) {
+void startCamera(int i, int cameraIndex, int width, int height)
+{
 	// Attempt to read from camera multiple times (necessary for USB/IP)
 	for (size_t _i = 0; _i < 10; _i++)
 	{
@@ -239,7 +254,8 @@ void startCamera(int i, int cameraIndex, int width, int height) {
 		vc >> frame;
 		if (frame.empty()) continue;
 
-		if (i == 0) {
+		if (i == 0)
+		{
 			cameraReady = true;
 		}
 
@@ -252,7 +268,8 @@ void startCamera(int i, int cameraIndex, int width, int height) {
 }
 
 
-void setupCapture() {
+void setupCapture()
+{
 	// Create fullscreen preview window
 	cv::namedWindow("SizeProbe", cv::WINDOW_NORMAL);
 	cv::setWindowProperty("SizeProbe", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
@@ -267,7 +284,8 @@ void setupCapture() {
 
 	int n_cameras = 1;
 	std::cout << "How many cameras? ";
-	if (!(std::cin >> n_cameras) || n_cameras < 1) {
+	if (!(std::cin >> n_cameras) || n_cameras < 1)
+	{
 		exit(EXIT_FAILURE);
 	}
 
@@ -288,7 +306,7 @@ void setupCapture() {
 	}
 
 	// Store placeholder images to avoid crashes
-	cv::Mat placeholder(1080, 1920, 16, cv::Scalar(0,0,0));
+	cv::Mat placeholder(1080, 1920, 16, cv::Scalar(0, 0, 0));
 	cvWrite(placeholder, "Image not ready", 100);
 	for (size_t i = 0; i < n_cameras; i++)
 	{
@@ -298,7 +316,13 @@ void setupCapture() {
 }
 
 
-void camWindow() {
+void test(std::string msg)
+{
+	std::cout << " > " << msg << std::endl;
+}
+
+void camWindow()
+{
 	std::string title = OPEN_POSE_NAME_AND_VERSION + " - PREVIEW";
 	bool show_original = true;
 	bool show_fps = false;
@@ -312,10 +336,11 @@ void camWindow() {
 	std::thread op_thread = std::thread(&openPose);
 
 	// Wait for main camera before proceeding
-	while (!cameraReady) {
+	while (!cameraReady)
+	{
 		Sleep(100);
 	}
-	
+
 	cv::Mat frame;
 	FPSCounter fpsCounter;
 
@@ -330,14 +355,15 @@ void camWindow() {
 		fpsCounter.tick();
 
 		// Show window & OpenPose FPS
-		if (show_fps) {
+		if (show_fps)
+		{
 			std::stringstream ss;
 			double fps = fpsCounter.getFPS();
 			double fps_o = fpsCounter_op.getFPS();
 			ss << std::fixed << std::setprecision(1) << fps << " - " << fps_o;
 			cvWrite(frame, ss.str());
 		}
-		
+
 		// Show frame & check for keypress
 		cv::imshow(title, frame);
 		int key = cv::waitKey(10) & 0xFF;
@@ -384,11 +410,13 @@ void camWindow() {
 
 int main(int argc, char *argv[])
 {
-	if (argc < 3) {
+	if (argc < 3)
+	{
 		std::cout << "No arguments specified, using default values!" << std::endl;
 		publisher = new ZMQPublisher("openpose");
 	}
-	else {
+	else
+	{
 		std::stringstream ss;
 		ss << argv[1] << ":" << argv[2];
 		publisher = new ZMQPublisher("openpose", ss.str());

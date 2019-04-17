@@ -10,13 +10,15 @@
 #include <map>
 #include <string>
 
-struct Device {
+struct Device
+{
 	int id; // This can be used to open the device in OpenCV
 	std::string devicePath;
 	std::string deviceName; // This can be used to show the devices to the user
 };
 
-class DeviceEnumerator {
+class DeviceEnumerator
+{
 
 public:
 

@@ -1,6 +1,7 @@
 #include <camera_pose_extras.hpp>
 
-double FPSCounter::clockToSeconds(clock_t ticks) {
+double FPSCounter::clockToSeconds(clock_t ticks)
+{
 	return (ticks / (double)CLOCKS_PER_SEC);
 }
 
@@ -11,7 +12,8 @@ void FPSCounter::tick()
 	double deltaTime = clockToSeconds(now - startTime);
 
 	// Calculate average over ~1 second
-	if (deltaTime > FPS_UPDATE_RATE) {
+	if (deltaTime > FPS_UPDATE_RATE)
+	{
 		frameRate = (double)frames / deltaTime;
 		frames = 0;
 		startTime = now;
@@ -24,14 +26,16 @@ double FPSCounter::getFPS()
 }
 
 
-cv::Mat SharedFrame::get() {
+cv::Mat SharedFrame::get()
+{
 	mtx.lock();
 	cv::Mat mat = frame;
 	mtx.unlock();
 	return mat;
 }
 
-void SharedFrame::set(cv::Mat mat) {
+void SharedFrame::set(cv::Mat mat)
+{
 	mtx.lock();
 	frame = mat;
 	mtx.unlock();
@@ -39,7 +43,7 @@ void SharedFrame::set(cv::Mat mat) {
 
 
 ZMQPublisher::ZMQPublisher(std::string topic, std::string addr)
-	// Prepare context and socket
+// Prepare context and socket
 	: context(1), socket(context, ZMQ_PUB)
 {
 	this->topic = topic;
