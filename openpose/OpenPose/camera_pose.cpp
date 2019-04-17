@@ -316,11 +316,6 @@ void setupCapture()
 }
 
 
-void test(std::string msg)
-{
-	std::cout << " > " << msg << std::endl;
-}
-
 void camWindow()
 {
 	std::string title = OPEN_POSE_NAME_AND_VERSION + " - PREVIEW";

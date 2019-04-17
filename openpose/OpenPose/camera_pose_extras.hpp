@@ -42,3 +42,22 @@ private:
 	zmq::socket_t socket;
 	std::string topic;
 };
+
+// Callback type for delivering messages
+typedef void(*cb_T)(std::string);
+
+class ZMQSubscriber
+{
+public:
+	ZMQSubscriber(std::string topic, cb_T callback, std::string addr = "localhost:4001");
+	~ZMQSubscriber();
+
+private:
+	zmq::context_t context;
+	zmq::socket_t socket;
+	std::string topic;
+	cb_T callback;
+	std::thread thread;
+	bool stopped = false;
+	void receiveLoop();
+};
