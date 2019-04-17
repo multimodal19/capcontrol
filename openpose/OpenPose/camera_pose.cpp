@@ -3,7 +3,7 @@
 
 // ============================ Shared variables ============================
 FPSCounter fpsCounter_op;
-SharedFrame* sharedFrames = new SharedFrame[N_CAMERAS];
+std::vector<SharedFrame*> sharedFrames;
 SharedFrame sharedFrame_op;
 ZMQPublisher* publisher;
 std::vector<std::thread> camThreads;
@@ -145,7 +145,7 @@ void openPose() {
 
 		while (!stopped) {
 			// Process and display image
-			auto imageToProcess = sharedFrames[0].get();
+			auto imageToProcess = sharedFrames[0]->get();
 			cv::resize(imageToProcess, imageToProcess, cv::Size{ width, height });
 			auto datumProcessed = opWrapper.emplaceAndPop(imageToProcess);
 			if (datumProcessed != nullptr)
@@ -186,7 +186,7 @@ int chooseCamera() {
 	int deviceCount = devices.size() - 1;
 	std::cout << "Select a camera (0 to " << deviceCount << "): ";
 	int index = 0;
-	if (!(std::cin >> index) || index < 0) {
+	if (!(std::cin >> index) || index < 0 || index > deviceCount) {
 		// Exit on invalid input
 		exit(EXIT_FAILURE);
 	}
@@ -206,7 +206,7 @@ void cameraLoop(cv::VideoCapture vc, int i) {
 		if (mirrored) {
 			cv::flip(frame, frame, 1);
 		}
-		sharedFrames[i].set(frame.clone());
+		sharedFrames[i]->set(frame.clone());
 	}
 }
 
@@ -271,27 +271,34 @@ void setupCapture() {
 	// Destroy window again, to avoid gray window staying behind
 	cv::destroyWindow("SizeProbe");
 
+	int n_cameras = 1;
+	std::cout << "How many cameras? ";
+	if (!(std::cin >> n_cameras) || n_cameras < 1) {
+		exit(EXIT_FAILURE);
+	}
+
 	// Ask which cameras to use, then start them
 	std::cout << std::endl;
 	std::vector<int> ids;
-	for (size_t i = 0; i < N_CAMERAS; i++)
+	for (size_t i = 0; i < n_cameras; i++)
 	{
 		std::cout << "Choose camera #" << i << std::endl;
 		ids.push_back(chooseCamera());
 		std::cout << std::endl;
 	}
 	std::cout << "Starting cameras!" << std::endl;
-	for (size_t i = 0; i < N_CAMERAS; i++)
+	for (size_t i = 0; i < n_cameras; i++)
 	{
+		sharedFrames.push_back(new SharedFrame);
 		camThreads.push_back(std::thread(&startCamera, i, ids[i], width, height));
 	}
 
 	// Store placeholder images to avoid crashes
 	cv::Mat placeholder(1080, 1920, 16, cv::Scalar(0,0,0));
 	cvWrite(placeholder, "Image not ready", 100);
-	for (size_t i = 0; i < N_CAMERAS; i++)
+	for (size_t i = 0; i < n_cameras; i++)
 	{
-		sharedFrames[i].set(placeholder);
+		sharedFrames[i]->set(placeholder);
 	}
 	sharedFrame_op.set(placeholder);
 }
@@ -325,7 +332,7 @@ void camWindow() {
 	while (!stopped)
 	{
 		// Either use raw image from camera or processed one from OpenPose
-		frame = show_original ? sharedFrames[i_camera].get().clone() : sharedFrame_op.get().clone();
+		frame = show_original ? sharedFrames[i_camera]->get().clone() : sharedFrame_op.get().clone();
 		fpsCounter.tick();
 
 		// Show window & OpenPose FPS
@@ -366,7 +373,7 @@ void camWindow() {
 			break;
 		case 'c':
 			// Loop through available cameras
-			i_camera = (i_camera + 1) % N_CAMERAS;
+			i_camera = (i_camera + 1) % camThreads.size();
 			break;
 		default:
 			break;
