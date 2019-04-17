@@ -150,14 +150,10 @@ void openPose() {
 			auto datumProcessed = opWrapper.emplaceAndPop(imageToProcess);
 			if (datumProcessed != nullptr)
 			{
-				cv::Mat res = datumProcessed->at(0)->cvOutputData;
-
 				// Do something with keypoints
-				//printKeypoints(datumProcessed);
 				evaluateKeypoints(datumProcessed);
 
-				sharedFrame_op.set(res);
-				// op::log("Frame processed", op::Priority::High);
+				sharedFrame_op.set(datumProcessed->at(0)->cvOutputData);
 				fpsCounter_op.tick();
 			}
 			else
@@ -236,8 +232,6 @@ void startCamera(int i, int cameraIndex, int width, int height) {
 		// Set up video capture using the window dimensions to get nice scaling
 		vc.set(cv::CAP_PROP_FRAME_WIDTH, width);
 		vc.set(cv::CAP_PROP_FRAME_HEIGHT, height);
-		//vc.set(cv::CAP_PROP_AUTOFOCUS, 1);
-		//vc.set(cv::CAP_PROP_FPS, 60);
 
 		// Read test frame and restart if unsuccessful
 		if (!vc.isOpened()) continue;
