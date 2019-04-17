@@ -29,6 +29,9 @@ OpenPose and processing as many of the frames as it can.
 Either just run the application directly from Visual Studio or from the build
 directory.
 
+For the Publisher & Subscriber, host address and port can be changed via
+command line arguments, default is: `camera_pose.exe localhost 4000 4001`.
+
 The following interaction is possible:
 | Key              | Action                       |
 |------------------|------------------------------|
@@ -38,3 +41,4 @@ The following interaction is possible:
 | <kbd>m</kbd>     | Toggle mirroring             |
 | <kbd>w</kbd>     | Increase turn threshold      |
 | <kbd>s</kbd>     | Decrease turn threshold      |
+| <kbd>c</kbd>     | Switch between cameras       |
