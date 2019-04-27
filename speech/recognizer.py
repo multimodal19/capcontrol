@@ -1,47 +1,42 @@
 import struct
 import sys
 import pyaudio
-import speech_recognition as sr
-from threading import Thread
+import ibmstt
 from porcupine import Porcupine
 from communication import Publisher
 
 
-def listen_google():
-    with sr.Microphone() as source:
-        audio = r.listen(source)
-    # recognize speech using Google Speech Recognition
-    try:
-        text = r.recognize_google(audio).lower()
-        print("Recognized: {}".format(text))
-        # Do reeeaally simple "recognition"
-        if "record" in text:
-            speech.send("start_stop")
-        elif "camera" in text or "scene" in text:
-            if "1" in text or "one" in text:
-                speech.send("scene_1")
-            elif "2" in text or "two" in text:
-                speech.send("scene_2")
-            elif "3" in text or "three" in text:
-                speech.send("scene_3")
-            elif "4" in text or "four" in text:
-                speech.send("scene_4")
-        elif "rage" in text or "radar" in text or "suck" in text:
-            speech.send("rage")
-        elif "cloud" in text:
-            speech.send("cloud")
-        elif "clear" in text:
-            speech.send("clear_overlay")
-
-    except sr.UnknownValueError:
-        print("Google Speech Recognition could not understand audio")
-    except sr.RequestError as e:
-        print(
-            "Could not request results from Google Speech Recognition service; {}"
-            .format(e))
+# Number of seconds until recognition is aborted if nothing is recognized
+TIMEOUT = 10
 
 
-class Recognizer(Thread):
+def listen_callback(text):
+    # Do reeeaally simple "recognition"
+    if "record" in text:
+        speech.send("start_stop")
+    elif "camera" in text or "scene" in text:
+        if "1" in text or "one" in text:
+            speech.send("scene_1")
+        elif "2" in text or "two" in text:
+            speech.send("scene_2")
+        elif "3" in text or "three" in text:
+            speech.send("scene_3")
+        elif "4" in text or "four" in text:
+            speech.send("scene_4")
+    elif "rage" in text or "radar" in text or "suck" in text:
+        speech.send("rage")
+    elif "cloud" in text:
+        speech.send("cloud")
+    elif "clear" in text:
+        speech.send("clear_overlay")
+    else:
+        # Return False since we didn't find anything
+        return False
+    # Return True because we found something
+    return True
+
+
+class Recognizer():
 
     def __init__(
             self,
@@ -82,7 +77,7 @@ class Recognizer(Thread):
                 result = porcupine.process(pcm)
                 if result:
                     print("Detected hotword, listening...")
-                    listen_google()
+                    ibmstt.recognize(listen_callback, TIMEOUT)
 
         except KeyboardInterrupt:
             print('stopping ...')
@@ -102,13 +97,6 @@ if __name__ == "__main__":
         sys.exit(1)
     # Initialize Publisher
     speech = Publisher(sys.argv[1], sys.argv[2], "speech")
-
-    r = sr.Recognizer()
-    m = sr.Microphone()
-    with m as source:
-        print("Be quiet, we're calibrating")
-        # we only need to calibrate once, before we start listening
-        r.adjust_for_ambient_noise(source, 5)
 
     # start listening in the background
     print("Now listening in the background for hotword 'Christina'")

@@ -1,3 +1,2 @@
-SpeechRecognition==3.8.1
 websocket-client==0.56.0
 -e git+https://github.com/multimodal19/communication.git#egg=communication

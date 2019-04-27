@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright 2016 IBM
 # Modifications copyright (c) 2019 Martin Disch
 #
@@ -15,57 +13,44 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import argparse
 import base64
 import configparser
 import json
 import threading
-import time
-
 import pyaudio
 import websocket
 from websocket._abnf import ABNF
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
-# Even if your default input is multi channel (like a webcam mic),
-# it's really important to only record 1 channel, as the STT service
-# does not do anything useful with stereo. You get a lot of "hmmm"
-# back.
 CHANNELS = 1
-# Rate is important, nothing works without it. This is a pretty
-# standard default. If you have an audio device that requires
-# something different, change this.
 RATE = 44100
-RECORD_SECONDS = 5
-FINALS = []
+
+RUNNING = None
+CALLBACK = None
+# The maximum number of seconds after which recognition is stopped
+RECORD_SECONDS = 10
 
 REGION_MAP = {
-    'us-east': 'gateway-wdc.watsonplatform.net',
-    'us-south': 'stream.watsonplatform.net',
-    'eu-gb': 'stream.watsonplatform.net',
-    'eu-de': 'stream-fra.watsonplatform.net',
-    'au-syd': 'gateway-syd.watsonplatform.net',
-    'jp-tok': 'gateway-syd.watsonplatform.net',
+    'us-south': "stream.watsonplatform.net",
+    'us-east': "gateway-wdc.watsonplatform.net",
+    'eu-de': "stream-fra.watsonplatform.net",
+    'eu-gb': "gateway-lon.watsonplatform.net",
+    'au-syd': "gateway-syd.watsonplatform.net",
+    'jp-tok': "gateway-tok.watsonplatform.net"
 }
 
 
-def read_audio(ws, timeout):
-    """Read audio and sent it to the websocket port.
+def read_audio(ws):
+    """Read audio and send it to the websocket port.
 
     This uses pyaudio to read from a device in chunks and send these
     over the websocket wire.
 
     """
+    # Open stream
     global RATE
     p = pyaudio.PyAudio()
-    # NOTE(sdague): if you don't seem to be getting anything off of
-    # this you might need to specify:
-    #
-    #    input_device_index=N,
-    #
-    # Where N is an int. You'll need to do a dump of your input
-    # devices to figure out which one you want.
     RATE = int(p.get_default_input_device_info()['defaultSampleRate'])
     stream = p.open(format=FORMAT,
                     channels=CHANNELS,
@@ -73,67 +58,44 @@ def read_audio(ws, timeout):
                     input=True,
                     frames_per_buffer=CHUNK)
 
-    print("* recording")
-    rec = timeout or RECORD_SECONDS
-
-    for i in range(0, int(RATE / CHUNK * rec)):
+    # Recognize until timeout or recognition
+    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        if not RUNNING:
+            break
         data = stream.read(CHUNK)
-        # print("Sending packet... %d" % i)
-        # NOTE(sdague): we're sending raw binary in the stream, we
-        # need to indicate that otherwise the stream service
-        # interprets this as text control messages.
         ws.send(data, ABNF.OPCODE_BINARY)
 
+    print("Stopped listening")
     # Disconnect the audio stream
     stream.stop_stream()
     stream.close()
-    print("* done recording")
-
-    # In order to get a final response from STT we send a stop, this
-    # will force a final=True return message.
-    data = {"action": "stop"}
-    ws.send(json.dumps(data).encode('utf8'))
-    # ... which we need to wait for before we shutdown the websocket
-    time.sleep(1)
+    # Close the WebSocket
     ws.close()
-
-    # ... and kill the audio device
+    # Kill the audio device
     p.terminate()
 
 
-def on_message(self, msg):
-    """Print whatever messages come in.
-
-    While we are processing any non trivial stream of speech Watson
-    will start chunking results into bits of transcripts that it
-    considers "final", and start on a new stretch. It's not always
-    clear why it does this. However, it means that as we are
-    processing text, any time we see a final chunk, we need to save it
-    off for later.
-    """
+def on_message(ws, msg):
+    """Print the recognized message and pass it to the callback."""
     data = json.loads(msg)
     if "results" in data:
-        if data["results"][0]["final"]:
-            FINALS.append(data)
         # This prints out the current fragment that we are working on
-        print(data['results'][0]['alternatives'][0]['transcript'])
+        text = data['results'][0]['alternatives'][0]['transcript']
+        print(text)
+        # Pass it to the callback
+        if CALLBACK(text):
+            # If it recognized something, stop listening
+            global RUNNING
+            RUNNING = False
 
 
-def on_error(self, error):
+def on_error(ws, error):
     """Print any errors."""
-    print(error)
-
-
-def on_close(ws):
-    """Upon close, print the complete and final transcript."""
-    transcript = "".join([x['results'][0]['alternatives'][0]['transcript']
-                          for x in FINALS])
-    print(transcript)
+    print(f"WebSocket error: {error}")
 
 
 def on_open(ws):
     """Triggered as soon a we have an active connection."""
-    args = ws.args
     data = {
         "action": "start",
         # this means we get to send it straight raw sampling
@@ -147,15 +109,20 @@ def on_open(ws):
     ws.send(json.dumps(data).encode('utf8'))
     # Spin off a dedicated thread where we are going to read and
     # stream out audio.
-    threading.Thread(target=read_audio,
-                     args=(ws, args.timeout)).start()
+    threading.Thread(target=read_audio, args=[ws]).start()
+
 
 def get_url():
+    """Return the URL for the location from the config file.
+
+    Returns
+    -------
+    str
+        The URL with all parameters.
+
+    """
     config = configparser.RawConfigParser()
-    config.read('speech.cfg')
-    # See
-    # https://console.bluemix.net/docs/services/speech-to-text/websockets.html#websockets
-    # for details on which endpoints are for each region.
+    config.read("speech.cfg")
     region = config.get('auth', 'region')
     host = REGION_MAP[region]
     return (
@@ -163,49 +130,56 @@ def get_url():
         "?model=en-US_BroadbandModel&x-watson-learning-opt-out=true"
     )
 
+
 def get_auth():
+    """Return the credentials from the config file.
+
+    Returns
+    -------
+    tuple of str
+        With two elements, key and value.
+
+    """
     config = configparser.RawConfigParser()
-    config.read('speech.cfg')
+    config.read("speech.cfg")
     apikey = config.get('auth', 'apikey')
     return ("apikey", apikey)
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Transcribe Watson text in real time')
-    parser.add_argument('-t', '--timeout', type=int, default=5)
-    # parser.add_argument('-d', '--device')
-    # parser.add_argument('-v', '--verbose', action='store_true')
-    args = parser.parse_args()
-    return args
+def recognize(callback, timeout):
+    """Recognize speech, passing it to the callback to act upon.
 
+    Recognition will run until the callback returns True on a result, or the
+    timeout has been reached.
 
-def main():
+    Parameters
+    ----------
+    callback : fun
+        Function taking a string (the recognized text) as an argument.
+        Returns True when it was able to recognize something and this run of
+        recognition should stop, or False if that wasn't the case and
+        recognition should continue.
+    timeout : int
+        Number of seconds after which recognition should be stopped if nothing
+        was recognized.
+
+    """
+    # Reset globals
+    global CALLBACK, RUNNING, RECORD_SECONDS
+    CALLBACK = callback
+    RECORD_SECONDS = timeout
+    RUNNING = True
     # Connect to websocket interfaces
     headers = {}
     userpass = ":".join(get_auth())
     headers["Authorization"] = "Basic " + base64.b64encode(
         userpass.encode()).decode()
     url = get_url()
-
-    # If you really want to see everything going across the wire,
-    # uncomment this. However realize the trace is going to also do
-    # things like dump the binary sound packets in text in the
-    # console.
-    #
-    # websocket.enableTrace(True)
     ws = websocket.WebSocketApp(url,
                                 header=headers,
                                 on_message=on_message,
                                 on_error=on_error,
-                                on_close=on_close,
                                 on_open=on_open)
-    ws.args = parse_args()
-    # This gives control over the WebSocketApp. This is a blocking
-    # call, so it won't return until the ws.close() gets called (after
-    # 6 seconds in the dedicated thread).
+    # This hands control to the WebSocketApp. It's a blocking call, so it won't
+    # return until ws.close() gets called
     ws.run_forever()
-
-
-if __name__ == "__main__":
-    main()
