@@ -15,6 +15,9 @@
        python setup.py install --static-link
        ```
 3. Install other dependencies with `pip install -r requirements.txt`.
+4. If you want to use the IBM Watson speech-to-text (STT) service, you need
+   to create a free trial plan, copy `speech.cfg.EXAMPLE` to `speech.cfg` and
+   enter your API key there.
 
 ## Usage
 
@@ -24,3 +27,6 @@ To run the recognizer connecting to the MessageBroker, use
 For the Porcupine demo, run
 `python .\porcupine\porcupine_demo.py --keyword_file_paths
 .\porcupine\keywords\christina_windows.ppn`.
+
+For the IBM Watson STT demo, run
+`python .\demo_ibm.py -t 20`.
