@@ -15,7 +15,7 @@
        python setup.py install --static-link
        ```
 3. Install other dependencies with `pip install -r requirements.txt`.
-4. If you want to use the IBM Watson speech-to-text (STT) service, you need
+4. Since this uses the IBM Watson speech-to-text (STT) service, you need
    to create a free trial plan, copy `speech.cfg.EXAMPLE` to `speech.cfg` and
    enter your API key there.
 
