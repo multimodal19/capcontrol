@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2016 IBM
+# Modifications copyright (c) 2019 Martin Disch
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -137,14 +138,8 @@ def on_open(ws):
         "action": "start",
         # this means we get to send it straight raw sampling
         "content-type": "audio/l16;rate=%d" % RATE,
-        "continuous": True,
         "interim_results": True,
-        # "inactivity_timeout": 5, # in order to use this effectively
-        # you need other tests to handle what happens if the socket is
-        # closed by the server.
-        "word_confidence": True,
-        "timestamps": True,
-        "max_alternatives": 3
+        "profanity_filter": False
     }
 
     # Send the initial control message which sets expectations for the
@@ -163,8 +158,10 @@ def get_url():
     # for details on which endpoints are for each region.
     region = config.get('auth', 'region')
     host = REGION_MAP[region]
-    return ("wss://{}/speech-to-text/api/v1/recognize"
-           "?model=en-US_BroadbandModel").format(host)
+    return (
+        f"wss://{host}/speech-to-text/api/v1/recognize"
+        "?model=en-US_BroadbandModel&x-watson-learning-opt-out=true"
+    )
 
 def get_auth():
     config = configparser.RawConfigParser()
@@ -201,8 +198,8 @@ def main():
                                 header=headers,
                                 on_message=on_message,
                                 on_error=on_error,
-                                on_close=on_close)
-    ws.on_open = on_open
+                                on_close=on_close,
+                                on_open=on_open)
     ws.args = parse_args()
     # This gives control over the WebSocketApp. This is a blocking
     # call, so it won't return until the ws.close() gets called (after
