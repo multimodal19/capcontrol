@@ -10,24 +10,25 @@ from communication import Publisher
 TIMEOUT = 10
 
 
-def listen_callback(text):
+def listen_callback(t):
     # Do reeeaally simple "recognition"
-    if "record" in text:
+    if "record" in t:
         speech.send("start_stop")
-    elif "camera" in text or "scene" in text:
-        if "1" in text or "one" in text:
-            speech.send("scene_1")
-        elif "2" in text or "two" in text:
-            speech.send("scene_2")
-        elif "3" in text or "three" in text:
-            speech.send("scene_3")
-        elif "4" in text or "four" in text:
-            speech.send("scene_4")
-    elif "rage" in text or "radar" in text or "suck" in text:
+    elif ("camera" in t or "see" in t or "scene" in t) and ("one" in t):
+        speech.send("scene_1")
+    elif ("camera" in t or "see" in t or "scene" in t) and (
+        "two" in t or "to" in t):
+        speech.send("scene_2")
+    elif ("camera" in t or "see" in t or "scene" in t) and ("three" in t):
+        speech.send("scene_3")
+    elif ("camera" in t or "see" in t or "scene" in t) and (
+        "four" in t or "for" in t):
+        speech.send("scene_4")
+    elif "rage" in t or "rache" in t or "suck" in t:
         speech.send("rage")
-    elif "cloud" in text:
+    elif "cloud" in t:
         speech.send("cloud")
-    elif "clear" in text:
+    elif "clear" in t:
         speech.send("clear_overlay")
     else:
         # Return False since we didn't find anything
