@@ -10,19 +10,21 @@ from communication import Publisher
 TIMEOUT = 10
 
 
+def scene(t):
+    return any(w in t for w in ["camera", "camaro", "see", "scene"])
+
+
 def listen_callback(t):
     # Do reeeaally simple "recognition"
     if "record" in t:
         speech.send("start_stop")
-    elif ("camera" in t or "see" in t or "scene" in t) and ("one" in t):
+    elif scene(t) and ("one" in t):
         speech.send("scene_1")
-    elif ("camera" in t or "see" in t or "scene" in t) and (
-        "two" in t or "to" in t):
+    elif scene(t) and ("two" in t or "to" in t):
         speech.send("scene_2")
-    elif ("camera" in t or "see" in t or "scene" in t) and ("three" in t):
+    elif scene(t) and ("three" in t):
         speech.send("scene_3")
-    elif ("camera" in t or "see" in t or "scene" in t) and (
-        "four" in t or "for" in t):
+    elif scene(t) and ("four" in t or "for" in t):
         speech.send("scene_4")
     elif "rage" in t or "rache" in t or "suck" in t:
         speech.send("rage")
@@ -103,7 +105,6 @@ if __name__ == "__main__":
     print("Now listening in the background for hotword 'Christina'")
 
     keyword_file_paths = ["porcupine/keywords/christina_windows.ppn"]
-    library_path = "porcupine/libpv_porcupine.dll"
     model_file_path = "porcupine/porcupine_params.pv"
     sensitivities = [0.5]
 

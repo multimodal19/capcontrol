@@ -80,7 +80,7 @@ def on_message(ws, msg):
     data = json.loads(msg)
     if "results" in data:
         # This prints out the current fragment that we are working on
-        text = data['results'][0]['alternatives'][0]['transcript']
+        text = data['results'][0]['alternatives'][0]['transcript'].lower()
         print(text)
         # Pass it to the callback
         if CALLBACK(text):
