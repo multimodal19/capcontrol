@@ -32,6 +32,10 @@ def listen_callback(t):
         speech.send("cloud")
     elif "clear" in t:
         speech.send("clear_overlay")
+    elif ("subscribe" in t or "follow" in t) and "youtube" in t:
+        speech.send("social_youtube")
+    elif ("subscribe" in t or "follow" in t) and "twitter" in t:
+        speech.send("social_twitter")
     else:
         # Return False since we didn't find anything
         return False
@@ -105,6 +109,7 @@ if __name__ == "__main__":
     print("Now listening in the background for hotword 'Christina'")
 
     keyword_file_paths = ["porcupine/keywords/christina_windows.ppn"]
+    library_path = "porcupine/libpv_porcupine.dll"
     model_file_path = "porcupine/porcupine_params.pv"
     sensitivities = [0.5]
 

@@ -24,16 +24,16 @@ def speech_handler(msg):
     elif msg == "clear_overlay":
         print("Clearing the overlay")
         overlay.clear()
-    elif msg == "next":
+    elif "social_" in msg:
         # Skip if no hand data was collected yet
         if "right" not in shared_state["hands"]: return
-        print("Showing the popup")
+        platform = msg.replace("social_", "")
+        print(f"Showing popup for {platform}")
         # Show small image at index finger position
-        w = 200
+        w = 350
         x = shared_state["hands"]["right"][0] - int(w / 2)
         y = shared_state["hands"]["right"][1] - int(w / 2)
-        # Replace with whatever image you like
-        overlay.send("D:/Downloads/mindblown.gif", x=x, y=y, width=w, animate=True)
+        overlay.send(f"overlays/filter_{platform}.png", x=x, y=y, width=w)
     else:
         print(f"Unknown speech command: {msg}")
 
