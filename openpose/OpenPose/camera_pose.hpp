@@ -23,6 +23,9 @@
 #define HAND_INDEX		3 * 8
 
 // Directions for face
-#define DIR_LEFT -1
-#define DIR_STRAIGHT 0
-#define DIR_RIGHT 1
+#define DIR_LEFT		-1
+#define DIR_STRAIGHT	0
+#define DIR_RIGHT		1
+
+// Image brightness threshold
+#define BRIGHT_THRESH	30
