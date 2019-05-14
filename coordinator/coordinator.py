@@ -50,6 +50,9 @@ def openpose_handler(msg):
         # Store hand data in global state
         shared_state["hands"][args[0]] = list(map(int, args[1:]))
         #print(f"hand data: {', '.join(args)}")
+    elif kind == "camera":
+        print(f"{msg} - Starting/stopping recording")
+        logi.send("start_stop")
     else:
         print(f"Unknown openpose command: {msg}")
 

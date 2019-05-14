@@ -15,6 +15,7 @@ cv::Rect screenSize;
 int turnThreshold = 10;
 int faceDirection = DIR_STRAIGHT;
 int activeCamera = 0;
+bool bright = false;
 
 
 /*
@@ -122,6 +123,25 @@ void evaluateKeypoints(const std::shared_ptr<std::vector<std::shared_ptr<op::Dat
 	}
 }
 
+void checkBrightness(cv::Mat image)
+{
+	auto mean = cv::mean(image);
+	int brightness = (mean[0] + mean[1] + mean[2]) / 3;
+	if (brightness < 30)
+	{
+		if (bright)
+		{
+			bright = false;
+			publisher->send("camera inactive");
+		}
+	}
+	else if (!bright)
+	{
+		bright = true;
+		publisher->send("camera active");
+	}
+}
+
 void openPose()
 {
 	try
@@ -162,6 +182,7 @@ void openPose()
 				// Do something with keypoints
 				evaluateKeypoints(datumProcessed);
 
+				checkBrightness(datumProcessed->at(0)->cvOutputData);
 				sharedFrame_op.set(datumProcessed->at(0)->cvOutputData);
 				fpsCounter_op.tick();
 			}
