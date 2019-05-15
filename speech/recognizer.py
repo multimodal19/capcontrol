@@ -2,12 +2,24 @@ import struct
 import sys
 import pyaudio
 import ibmstt
+import winsound
 from porcupine import Porcupine
 from communication import Publisher
 
 
 # Number of seconds until recognition is aborted if nothing is recognized
 TIMEOUT = 10
+
+
+# Plays the default windows speech recognition sound in the background
+def play_listening():
+    winsound.PlaySound("C:\\Windows\\media\\Speech On.wav",
+                       winsound.SND_FILENAME | winsound.SND_ASYNC)
+
+
+def play_listening_end():
+    winsound.PlaySound("C:\\Windows\\media\\Speech Off.wav",
+                       winsound.SND_FILENAME | winsound.SND_ASYNC)
 
 
 def scene(t):
@@ -84,7 +96,9 @@ class Recognizer():
                 result = porcupine.process(pcm)
                 if result:
                     print("Detected hotword, listening...")
+                    play_listening()
                     ibmstt.recognize(listen_callback, TIMEOUT)
+                    play_listening_end()
 
         except KeyboardInterrupt:
             print('stopping ...')
