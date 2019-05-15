@@ -24,9 +24,11 @@ def play_listening_end():
 
 # Tries to find any of the aliases for scene and returns the remaining text
 def extract_scene(t):
+    # Split words to avoid partial matches such as 'to' in 'tower'
+    words = t.split(" ")
     for w in ["camera", "camaro", "see", "scene"]:
-        if w in t:
-            return t[t.index(w) + len(w):]
+        if w in words:
+            return words[words.index(w) + 1:]
     return False
 
 
