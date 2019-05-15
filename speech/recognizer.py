@@ -22,21 +22,27 @@ def play_listening_end():
                        winsound.SND_FILENAME | winsound.SND_ASYNC)
 
 
-def scene(t):
-    return any(w in t for w in ["camera", "camaro", "see", "scene"])
+# Tries to find any of the aliases for scene and returns the remaining text
+def extract_scene(t):
+    for w in ["camera", "camaro", "see", "scene"]:
+        if w in t:
+            return t[t.index(w) + len(w):]
+    return False
 
 
 def listen_callback(t):
     # Do reeeaally simple "recognition"
+    result = extract_scene(t)
+
     if "record" in t:
         speech.send("start_stop")
-    elif scene(t) and ("one" in t):
+    elif result and ("one" in result):
         speech.send("scene_1")
-    elif scene(t) and ("two" in t or "to" in t):
+    elif result and ("two" in result or "to" in result):
         speech.send("scene_2")
-    elif scene(t) and ("three" in t):
+    elif result and ("three" in result):
         speech.send("scene_3")
-    elif scene(t) and ("four" in t or "for" in t):
+    elif result and ("four" in result or "for" in result):
         speech.send("scene_4")
     elif "rage" in t or "rache" in t or "suck" in t:
         speech.send("rage")
@@ -55,7 +61,7 @@ def listen_callback(t):
     return True
 
 
-class Recognizer():
+class Recognizer:
 
     def __init__(
             self,
@@ -68,7 +74,6 @@ class Recognizer():
         self._model_file_path = model_file_path
         self._keyword_file_paths = keyword_file_paths
         self._sensitivities = sensitivities
-
 
     def run(self):
         porcupine = None
